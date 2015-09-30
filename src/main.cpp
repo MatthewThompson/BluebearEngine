@@ -64,6 +64,9 @@ uint64_t perft(Position& pos, int depth) {
 }
 
 
+
+
+
 /*
  * Main function, first calls init, atm used for testing my code.
  */
@@ -98,10 +101,13 @@ int main(void) {
 	pos.doMove(getMove(A7, A6, NORMAL));
 	*/
 	
-	int depth = 3;
+	
+	
+	int depth = 5;
+	MoveNode root;
 	
 	t1 = clock();
-	MoveNode root = search(pos, depth);
+	root = search(pos, depth);
 	t2 = clock();
 	
 	

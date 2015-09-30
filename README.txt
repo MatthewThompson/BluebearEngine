@@ -7,8 +7,8 @@ evaluation and search amongst other things were written
 myself.
 
 This engine is a work in progress, to do list(in order of priority):
- - Fix the bug that makes it core dump when searching of a depth of usually 5 or more.
  - Add functionality to be able to play chess against it from the command line.
  - Make the search better than just brute force.
  - Improve the evaluation function.
  - Multithread it.
+ - Do the makefile.

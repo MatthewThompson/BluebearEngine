@@ -106,6 +106,10 @@ MoveNode search(Position& pos, int depth, MoveNode root) {
 	
 	Position next;
 	vector<Move> moveList = getLegalMoves(pos);
+	if (moveList.size() == 0) { // Checkmate or stalemate.
+		return MoveNode(pos);
+	}
+	
 	vector<MoveNode> moves;
 	Move m;
 	for(vector<Move>::iterator it = moveList.begin(); it != moveList.end(); it++) {
@@ -152,7 +156,7 @@ int evaluate(Position& pos) {
 	}
 	
 	if (pos.isCheckMate()) {
-		return pos.getToMove() == WHITE ? 100000 : -100000;
+		return pos.getToMove() == WHITE ? -100000 : 100000;
 	}
 	
 	
