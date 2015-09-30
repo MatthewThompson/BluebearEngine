@@ -7,8 +7,11 @@ evaluation and search amongst other things were written
 myself.
 
 This engine is a work in progress, to do list(in order of priority):
- - Add functionality to be able to play chess against it from the command line.
+ - Move string methods to a util header.
+ - Other code cleaning and commenting.
  - Make the search better than just brute force.
  - Improve the evaluation function.
  - Multithread it.
+ - Add draw by repetition rule.
+ - Learn how to make 64 bit executables...
  - Do the makefile.

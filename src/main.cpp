@@ -63,8 +63,61 @@ uint64_t perft(Position& pos, int depth) {
 	
 }
 
-
-
+/* 
+ * This function shouldn't be here.
+ */
+Move getMoveFromString(string moveInput, Position& pos) {
+	if (moveInput.size() > 5 || moveInput.size() < 4) {
+		return 0;
+	}
+	
+	vector<Move> moveList = getLegalMoves(pos);
+	
+	moveInput[0] = tolower(moveInput[0]);
+	moveInput[2] = tolower(moveInput[2]);
+	
+	Square from = Position::getSquareFromStr(moveInput.substr(0, 2));
+	Square to = Position::getSquareFromStr(moveInput.substr(2, 2));
+	
+	
+	PieceType promotionType = NO_PIECE_TYPE;
+	
+	if (moveInput.size() == 5) {
+		moveInput[4] = tolower(moveInput[4]);
+		promotionType = 
+		moveInput[4] == 'n' ? KNIGHT:
+		moveInput[4] == 'b' ? BISHOP:
+		moveInput[4] == 'r' ? ROOK:
+		moveInput[4] == 'q' ? QUEEN:
+		NO_PIECE_TYPE;
+		if (promotionType = NO_PIECE_TYPE) {
+			return 0;
+		}
+	}
+	
+	Move m; // Check if the move is one of the legal ones for this position.
+	for(vector<Move>::iterator it = moveList.begin(); it != moveList.end(); it++) {
+		m = *it;
+		if (getFrom(m) == from && getTo(m) == to) {
+			if (getMoveType(m) == PROMOTION) {
+				
+				if (getPromotionPiece(m) == promotionType) {
+					return m;
+				} else if (getPromotionPiece(m) == QUEEN && promotionType == NO_PIECE_TYPE) { // Promotion with no type specified, default to queening.
+					return m;
+				}
+				
+			} else {
+				return m;
+			}
+			
+		}
+		
+	}
+	
+	return 0;
+	
+}
 
 
 /*
@@ -75,46 +128,100 @@ int main(void) {
 	string perf1 = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 0";
 	string perf2 = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 0";
 	
-	Position pos;
-	init(pos);
 	
 	
 	//vector<Move> moveList;
 	
+	Position pos;
+	init(pos);
+	
 	clock_t t1, t2;
 	//moveList = getLegalMoves(pos);
 	
-	/*
-	pos.doMove(getMove(E2, E3, NORMAL));
-	pos.doMove(getMove(E7, E5, NORMAL));
-	pos.doMove(getMove(D1, H5, NORMAL));
-	pos.doMove(getMove(B8, C6, NORMAL));
-	pos.doMove(getMove(F1, B5, NORMAL));
-	pos.doMove(getMove(G8, F6, NORMAL));
-	pos.doMove(getMove(H5, F5, NORMAL));
-	pos.doMove(getMove(E5, E4, NORMAL));
-	pos.doMove(getMove(B2, B3, NORMAL));
-	pos.doMove(getMove(C6, B4, NORMAL));
-	pos.doMove(getMove(F5, E5, NORMAL));
-	pos.doMove(getMove(F8, E7, NORMAL));
-	pos.doMove(getMove(E1, D1, NORMAL));
-	pos.doMove(getMove(A7, A6, NORMAL));
-	*/
 	
 	
 	
-	int depth = 5;
+	//t1 = clock();
+	//root = search(pos, depth);
+	//t2 = clock();
+	
+	string game = "";
+	string moveStr;
+	Move m;
+	int depth = 4;
 	MoveNode root;
 	
-	t1 = clock();
-	root = search(pos, depth);
-	t2 = clock();
+	char moveNumStr[2];
+	pos.drawBoard();
 	
+	Colour playerColour = WHITE;
 	
+	while(!pos.isCheckMate() && !pos.isDraw()) {
+		//moveStr = "";
+		m = 0;
+		
+		if (pos.getToMove() == WHITE) {
+			sprintf(moveNumStr, "%u.", pos.getMoveNumber());
+			game.append(moveNumStr);
+			game.append(" ");
+		}
+		
+		while (!m) {
+			printf("Please input a move : ");
+			getline(cin, moveStr);
+			m = getMoveFromString(moveStr, pos);
+		}
+		printf("\n");
+		
+		game.append(getMoveStr(pos, m));
+		game.append(" ");
+		
+		pos.doMove(m);
+		
+		pos.drawBoard();
+		
+		if (pos.isCheckMate() || pos.isDraw()) {
+			break;
+		}
+		
+		printf("Engine thinking...\n\n");
+		
+		root = search(pos, depth);
+		m = root.children.front().move;
+		
+		game.append(getMoveStr(pos, m));
+		game.append(" ");
+		
+		pos.doMove(m);
+		
+		pos.drawBoard();
+		
+		
+	}
+	
+	if(pos.isDraw()) {
+		
+		game.append("1/2 - 1/2");
+		
+		printf("The game was a draw.\n");
+		
+	} else {
+		
+		game.append(pos.getToMove() == WHITE ? "0 - 1" : "1 - 0");
+		
+		if (pos.getToMove() == playerColour) {
+			printf("Congrats you won.\n");
+		} else {
+			printf("You lost.\n");
+		}
+		
+	}
+	
+	printf"Here was the game :\n%s\n", game);
 	
 	
 	//printMovesWithScores(pos, root.children);
-	
+	/*
 	MoveNode node = root;
 	int score = root.score;
 	string negative = score < 0 ? "-" : "";
@@ -142,7 +249,7 @@ int main(void) {
 		node = temp;
 		first = false;
 	}
-	
+	*/
 	
 	/*
 	printf("\n\n");

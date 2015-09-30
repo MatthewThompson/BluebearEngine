@@ -1127,6 +1127,52 @@ string Position::getSquareStr(Square s) {
 	return file.append(rank);
 }
 
+/* 
+ * Gets the file from a char.
+ */
+File Position::getFileFromChar(char c) {
+	switch (c) {
+		case 'a': return FILE_A;
+		case 'b': return FILE_B;
+		case 'c': return FILE_C;
+		case 'd': return FILE_D;
+		case 'e': return FILE_E;
+		case 'f': return FILE_F;
+		case 'g': return FILE_G;
+		case 'h': return FILE_H;
+		default: return FILE_A;
+	}
+}
+
+/* 
+ * Gets the rank from a char.
+ */
+Rank Position::getRankFromChar(char c) {
+	switch (c) {
+		case '1': return RANK_1;
+		case '2': return RANK_2;
+		case '3': return RANK_3;
+		case '4': return RANK_4;
+		case '5': return RANK_5;
+		case '6': return RANK_6;
+		case '7': return RANK_7;
+		case '8': return RANK_8;
+		default: return RANK_1;
+	}
+}
+
+/* 
+ * Gets the square from a string.
+ */
+Square Position::getSquareFromStr(string str) {
+	if (str.size() != 2) {
+		return NO_SQUARE;
+	}
+	File f = getFileFromChar(str.at(0));
+	Rank r = getRankFromChar(str.at(1));
+	return getSquare(f, r);
+}
+
 
 
 

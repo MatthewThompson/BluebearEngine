@@ -64,6 +64,9 @@ public:
 	static string getFileStr(File f);
 	static string getRankStr(Rank r);
 	static string getSquareStr(Square s);
+	static File getFileFromChar(char c);
+	static Rank getRankFromChar(char c);
+	static Square getSquareFromStr(string str);
 	
 	//
 	bool isInCheck(Colour c);

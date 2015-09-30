@@ -578,11 +578,10 @@ string getMoveStr(Position& pos, Move m, string flags = "") {
 	}
 	
 	// + for check, # for checkmate.
-	if (pos.isMoveCheck(m)) {
-		moveStr.append("+");
-	}
 	if (pos.isMoveCheckmate(m)) {
 		moveStr.append("#");
+	} else if (pos.isMoveCheck(m)) {
+		moveStr.append("+");
 	}
 	
 	// Flags like ! for good move, ?? for blunder, etc.
