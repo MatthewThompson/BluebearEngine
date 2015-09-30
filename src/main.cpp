@@ -148,7 +148,7 @@ int main(void) {
 	string game = "";
 	string moveStr;
 	Move m;
-	int depth = 4;
+	int depth = 3;
 	MoveNode root;
 	
 	char moveNumStr[2];
@@ -217,7 +217,7 @@ int main(void) {
 		
 	}
 	
-	printf("Here was the game :\n%s\n\n", game);
+	printf("Here was the game :\n%s\n\n", game.c_str());
 	
 	printf("Enter anything to quit.");
 	getline(cin, moveStr);
