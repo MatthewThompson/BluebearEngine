@@ -217,7 +217,10 @@ int main(void) {
 		
 	}
 	
-	printf"Here was the game :\n%s\n", game);
+	printf("Here was the game :\n%s\n\n", game);
+	
+	printf("Enter anything to quit.");
+	getline(cin, moveStr);
 	
 	
 	//printMovesWithScores(pos, root.children);
@@ -281,11 +284,11 @@ int main(void) {
 	}
 	*/
 	
-	
+	/*
 	printf("\n\n");
 	float diff = (((float)t2 - (float)t1) / 1000000.0F) * 1000;
 	printf("%f\n", diff);
-	
+	*/
 	
 	
 	/*
