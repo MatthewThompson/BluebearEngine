@@ -24,8 +24,9 @@ using namespace std;
 
 // The FEN for the start position.
 string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-string perf1 = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 0";
-string perf2 = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 0";
+string mateIn1 = "k7/8/1K6/8/8/8/8/7R w - - 0 0";
+string perft1 = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 0";
+string perft2 = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 0";
 	
 
 // Calls all individual init functions in turn.
@@ -235,7 +236,6 @@ void playGame(Colour playerColour, int difficulty) {
  * Main function, first calls init, atm used for testing my code.
  */
 int main(void) {
-	
 	
 	//clock_t t1, t2;
 	//t1 = clock();

@@ -545,14 +545,14 @@ bool Position::isInCheck(Colour c) {
  * Checks if a colour is in checkmate.
  */
 bool Position::isInCheckMate(Colour c) {
-	return isInCheck(c) && (getLegalMoves(*this).size() == 0);
+	return isInCheck(c) && (getLegalMoves(*this, c).size() == 0);
 }
 
 /* 
  * 
  */
 bool Position::isCheckMate() {
-	return isInCheckMate(toMove);
+	return isInCheck(toMove) && (getLegalMoves(*this).size() == 0);
 }
 
 /* 
@@ -560,7 +560,7 @@ bool Position::isCheckMate() {
  * TODO : 3 move repetition.
  */
 bool Position::isDraw() {
-	return (movesSinceCapture >= 100) || isInStaleMate(toMove);
+	return (movesSinceCapture >= 100) || isStaleMate();
 }
 
 
@@ -568,14 +568,14 @@ bool Position::isDraw() {
  * Checks if a colour is in stalemate.
  */
 bool Position::isInStaleMate(Colour c) {
-	return !isInCheck(c) && (getLegalMoves(*this).size() == 0);
+	return !isInCheck(c) && (getLegalMoves(*this, c).size() == 0);
 }
 
 /* 
  * 
  */
 bool Position::isStaleMate() {
-	return isInStaleMate(toMove);
+	return !isInCheck(toMove) && (getLegalMoves(*this).size() == 0);
 }
 
 // Checks if a move is a capture by seeing if there is a piece on the to square, or it's enpassant.
