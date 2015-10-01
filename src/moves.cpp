@@ -475,7 +475,6 @@ vector<Move> getLegalMoves(Position& pos, Colour c) {
  */
 string getMoveStr(Position& pos, Move m, string flags = "") {
 	
-	
 	string moveStr = "";
 	
 	// Get the type, to and from squares of the move.
@@ -529,8 +528,10 @@ string getMoveStr(Position& pos, Move m, string flags = "") {
 			
 		} else { // Non pawn move, non castle.
 			
+			string typeString = pos.getStringFromPieceType(pieceType);
+			
 			// If we moved something other than a pawn, we need to add the piece type char to the start.
-			moveStr.append(pos.getStringFromPieceType(pieceType));
+			moveStr += (pos.getStringFromPieceType(pieceType));
 			
 			// Get all the other attackers of this type to the square we moved to.
 			// Do this by getting all attackers of this type to the square "to", and removing
@@ -568,10 +569,7 @@ string getMoveStr(Position& pos, Move m, string flags = "") {
 				
 			}
 			
-			
 			moveStr.append(toStr);
-			
-			
 			
 		}
 	

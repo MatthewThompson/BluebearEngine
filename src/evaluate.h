@@ -24,10 +24,9 @@ bool ascending(MoveNode a, MoveNode b);
 bool descending(MoveNode a, MoveNode b);
 
 // Gives a score in centipawns (100 = 1.00).
-int evaluate(Position& pos, int depth);
 MoveNode search(Position& pos, int depth);
-MoveNode search(Position& pos, int depth, MoveNode root);
-int evaluate(Position& pos);
+MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot);
+int evaluate(Position& pos, int depthFromRoot = 0);
 int evaluate(Position& pos, Colour c);
 int getPawnScores(Position& pos, Colour c);
 
@@ -37,8 +36,8 @@ struct MoveNode {
 	
 	MoveNode() : score(0), move(0) {}
 	MoveNode(Move m) : score(0), move(m) {}
-	MoveNode(Position& pos) : score(evaluate(pos)), move(0) {}
-	MoveNode(Position& pos, Move m) : score(evaluate(pos)), move(m) {}
+	MoveNode(Position& pos, int depthFromRoot) : score(evaluate(pos, depthFromRoot)), move(0) {}
+	MoveNode(Position& pos, Move m, int depthFromRoot) : score(evaluate(pos, depthFromRoot)), move(m) {}
 	
 	bool operator<(const MoveNode& m) const { return score < m.score; }
 	bool operator>(const MoveNode& m) const { return score > m.score; }

@@ -8,6 +8,7 @@ myself.
 
 This engine is a work in progress, to do list(in order of priority):
  - Move string methods to a util header.
+ - Add simple and short opening book.
  - Other code cleaning and commenting.
  - Make the search better than just brute force.
  - Improve the evaluation function.

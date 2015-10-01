@@ -35,79 +35,31 @@ bool descending(MoveNode a, MoveNode b) {
 	return a > b;
 }
 
-int max(vector<int> scores) {
-	int maxScore = -100001;
-	
-	for(vector<int>::iterator it = scores.begin(); it != scores.end(); it++) {
-		if ((*it) > maxScore) {
-			maxScore = (*it);
-		}
-	}
-	
-	return maxScore;
-}
-
-int min(vector<int> scores) {
-	int minScore = 100001;
-	
-	for(vector<int>::iterator it = scores.begin(); it != scores.end(); it++) {
-		if ((*it) < minScore) {
-			minScore = (*it);
-		}
-	}
-	
-	return minScore;
-}
-
-/* 
- * 
- */
-int evaluate(Position& pos, int depth) {
-	
-	if (depth == 0) {
-		return evaluate(pos);
-	}
-	
-	vector<int> scores;
-	vector<Move> moveList = getLegalMoves(pos);
-	
-	Position next;
-	Move m;
-	int nextScore;
-	for(vector<Move>::iterator it = moveList.begin(); it != moveList.end(); it++) {
-		m = *it;
-		next = Position(pos);
-		next.doMove(m);
-		nextScore = evaluate(next, depth - 1);
-		scores.push_back(nextScore);
-	}
-	
-	return pos.getToMove() == WHITE ? max(scores) : min(scores);
-	
-}
 
 /* 
  * 
  */
 MoveNode search(Position& pos, int depth) {
-	return search(pos, depth, MoveNode(pos));
+	MoveNode root;
+	return search(pos, depth, root, 0);
 }
 
 /* 
  * 
  */
-MoveNode search(Position& pos, int depth, MoveNode root) {
+MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot) {
 	
 	if (depth == 0) {
 		
-		return MoveNode(pos);
+		return MoveNode(pos, depthFromRoot);
 		
 	}
 	
 	Position next;
 	vector<Move> moveList = getLegalMoves(pos);
 	if (moveList.size() == 0) { // Checkmate or stalemate.
-		return MoveNode(pos);
+		root.score = evaluate(pos, depthFromRoot);
+		return root;
 	}
 	
 	vector<MoveNode> moves;
@@ -120,12 +72,12 @@ MoveNode search(Position& pos, int depth, MoveNode root) {
 		
 		if (depth == 1) {
 			
-			moves.push_back(MoveNode(next, m));
+			moves.push_back(MoveNode(next, m, depthFromRoot + 1));
 			
 		} else { // Depth > 1
 			
 			MoveNode node(m);
-			moves.push_back(search(next, depth - 1, node));
+			moves.push_back(search(next, depth - 1, node, depthFromRoot + 1));
 			
 		}
 		
@@ -149,14 +101,19 @@ MoveNode search(Position& pos, int depth, MoveNode root) {
 /*
  * Gives a score in centipawns (100 = 1.00).
  */
-int evaluate(Position& pos) {
+int evaluate(Position& pos, int depthFromRoot = 0) {
 	
 	if (pos.isDraw()) {
 		return 0;
 	}
 	
 	if (pos.isCheckMate()) {
-		return pos.getToMove() == WHITE ? -100000 : 100000;
+		int mateInN = depthFromRoot;
+		if (depthFromRoot % 2 != 0) {
+			mateInN++;
+		}
+		mateInN = mateInN / 2;
+		return pos.getToMove() == WHITE ? -100000 + mateInN : 100000 - mateInN;
 	}
 	
 	

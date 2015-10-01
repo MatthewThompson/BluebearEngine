@@ -24,12 +24,21 @@ using namespace std;
 
 // The FEN for the start position.
 string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-string mateIn1 = "k7/8/1K6/8/8/8/8/7R w - - 0 0";
+string wmateIn1w = "k7/8/1K6/8/8/8/8/7R w - - 0 0";
+string wmateIn1b = "k7/8/1K6/8/8/8/8/7R b - - 0 0";
+string wmateIn2w = "1k6/8/1KR/8/8/8/8/8 w - - 0 0";
+string wmateIn2b = "k7/8/1KR/8/8/8/8/8 b - - 0 0";
+string bmateIn1w = "K7/8/1k6/8/8/8/8/7r w - - 0 0";
+string bmateIn1b = "K7/8/1k6/8/8/8/8/7r b - - 0 0";
+string bmateIn2w = "K7/8/1kr/8/8/8/8/8 w - - 0 0";
+string bmateIn2b = "1K6/8/1kr/8/8/8/8/8 b - - 0 0";
 string perft1 = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 0";
 string perft2 = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 0";
 	
 
-// Calls all individual init functions in turn.
+/* 
+ * Calls all individual init functions in turn.
+ */
 void init(Position& pos, string FEN = startFEN) {
 	
 	initBitboards();
@@ -232,6 +241,28 @@ void playGame(Colour playerColour, int difficulty) {
 	
 }
 
+/* 
+ * To be moved to util header soon tm.
+ */
+string getScoreStr(int score) {
+	char scoreStr[8]; // I think this is the max length it can be.
+	printf("score : %d\n\n", score);
+	bool negative = score < 0;
+	score = abs(score);
+	if (score < 90000) {
+		
+		sprintf(scoreStr,"%s%u.%02u", negative ? "-" : "", score/100, score % 100);
+		
+	} else { // It's over nine th... never mind.
+		
+		int mateInN = 100000 - score;
+		sprintf(scoreStr,"%sM%u", negative ? "-" : "", mateInN);
+		
+	}
+	
+	return string(scoreStr);
+}
+
 /*
  * Main function, first calls init, atm used for testing my code.
  */
@@ -240,6 +271,40 @@ int main(void) {
 	//clock_t t1, t2;
 	//t1 = clock();
 	//t2 = clock();
+	
+	Position pos;
+	init(pos, bmateIn2w);
+	int depth  = 3;
+	MoveNode root = search(pos, depth);
+	
+	MoveNode node = root;
+	int score = root.score;
+	string negative = score < 0 ? "-" : "";
+	printf("D%u (%s) :  ", depth, getScoreStr(score).c_str());
+	
+	bool first = true;
+	MoveNode temp;
+	Position tempPos(pos);
+	Move m;
+	
+	while(node.children.size()) {
+		
+		temp = node.children.front();
+		m = temp.move;
+		
+		if (tempPos.getToMove() == WHITE) {
+			printf("%u.  ", tempPos.getMoveNumber());
+		} else if (first) {
+			printf("%u.  ...", tempPos.getMoveNumber());
+		}
+		
+		printf("%s  ", getMoveStr(tempPos, m).c_str());
+		
+		tempPos.doMove(m);
+		node = temp;
+		first = false;
+	}
+	
 	
 	printf("\n\n");
 	printf("Welcome to the Bluebear Chess engine.\n");

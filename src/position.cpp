@@ -1097,6 +1097,8 @@ string Position::getStringFromPieceType(PieceType pt) {
 			return "Q";
 		case KING:
 			return "K";
+		default:
+			return "X";
 	}
 	
 }
