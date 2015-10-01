@@ -7,6 +7,7 @@ evaluation and search amongst other things were written
 myself.
 
 This engine is a work in progress, to do list(in order of priority):
+ - Fix a bug that makes checkmates not get flagged with a # after them.
  - Move string methods to a util header.
  - Other code cleaning and commenting.
  - Make the search better than just brute force.

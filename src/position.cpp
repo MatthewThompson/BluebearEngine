@@ -513,9 +513,9 @@ bool Position::castlingNotAttacked(Colour c, CastlingSide side) {
 	Square kingSquare = getSquare(FILE_E, c == WHITE ? RANK_1 : RANK_8);
 	Square direction  = getDirection(side);
 	
-	Square s = kingSquare;
+	Square s;
 	for (int i = 0; i < 3; i++) {
-		s += direction;
+		s = kingSquare + (direction * i);
 		pathUnattacked = pathUnattacked && !getAttackersTo(s, ~c);
 	}
 	

@@ -210,9 +210,9 @@ int main(void) {
 		game.append(pos.getToMove() == WHITE ? "0 - 1" : "1 - 0");
 		
 		if (pos.getToMove() == playerColour) {
-			printf("Congrats you won.\n");
-		} else {
 			printf("You lost.\n");
+		} else {
+			printf("Congrats you won.\n");
 		}
 		
 	}
