@@ -83,16 +83,19 @@ Move getMoveFromString(string moveInput, Position& pos) {
 	PieceType promotionType = NO_PIECE_TYPE;
 	
 	if (moveInput.size() == 5) {
-		moveInput[4] = tolower(moveInput[4]);
-		promotionType = 
-		moveInput[4] == 'n' ? KNIGHT:
-		moveInput[4] == 'b' ? BISHOP:
-		moveInput[4] == 'r' ? ROOK:
-		moveInput[4] == 'q' ? QUEEN:
-		NO_PIECE_TYPE;
-		if (promotionType = NO_PIECE_TYPE) {
+		char promoChar = tolower(moveInput[4]);
+		
+		promotionType = (
+		promoChar == 'n' ? KNIGHT:
+		promoChar == 'b' ? BISHOP:
+		promoChar == 'r' ? ROOK:
+		promoChar == 'q' ? QUEEN:
+		NO_PIECE_TYPE);
+		
+		if (promotionType == NO_PIECE_TYPE) {
 			return 0;
 		}
+		
 	}
 	
 	Move m; // Check if the move is one of the legal ones for this position.
@@ -137,8 +140,6 @@ int main(void) {
 	
 	clock_t t1, t2;
 	//moveList = getLegalMoves(pos);
-	
-	
 	
 	
 	//t1 = clock();
