@@ -47,7 +47,75 @@ MoveNode search(Position& pos, int depth) {
 /* 
  * 
  */
+MoveNode depthFirst(Position& pos, int depth) {
+	MoveNode root;
+	return depthFirst(pos, depth, root, 0);
+}
+
+/* 
+ * 
+ */
 MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot) {
+	
+	if (depth == 0) {
+		
+		return MoveNode(pos, depthFromRoot);
+		
+	}
+	
+	Position next;
+	vector<Move> moveList = getLegalMoves(pos);
+	if (moveList.size() == 0) { // Checkmate or stalemate.
+		root.score = evaluate(pos, depthFromRoot);
+		return root;
+	}
+	
+	vector<MoveNode> moves;
+	Move m;
+	for(vector<Move>::iterator it = moveList.begin(); it != moveList.end(); it++) {
+		
+		m = *it;
+		next = Position(pos);
+		next.doMove(m);
+		
+		if (depth == 1) {
+			
+			if (pos.isCapture(m) || pos.isMoveCheck(m)) {
+				MoveNode node(m);
+				moves.push_back(search(next, depth, node, depthFromRoot + 1));
+			} else {
+				moves.push_back(MoveNode(next, m, depthFromRoot + 1));
+			}
+			
+		} else { // Depth > 1
+			
+			MoveNode node(m);
+			moves.push_back(search(next, depth - 1, node, depthFromRoot + 1));
+			
+		}
+		
+	}
+	
+	
+	pos.getToMove() == WHITE ?  stable_sort(moves.begin(), moves.end(), descending):
+								stable_sort(moves.begin(), moves.end(), ascending);
+	
+	
+	root.children = moves;
+	
+	vector<MoveNode> sortedMoves = root.children;
+	root.score = moves.front().score;
+	
+	
+	return root;
+	
+}
+
+
+/* 
+ * 
+ */
+MoveNode depthFirst(Position& pos, int depth, MoveNode root, int depthFromRoot) {
 	
 	if (depth == 0) {
 		

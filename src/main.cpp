@@ -134,10 +134,14 @@ Move getMoveFromString(string moveInput, Position& pos) {
 	
 }
 
+
 /* 
  * 
  */
 void playGame(Colour playerColour, int difficulty) {
+	
+	clock_t t1, t2;
+	
 	Position pos;
 	init(pos);
 	
@@ -147,6 +151,9 @@ void playGame(Colour playerColour, int difficulty) {
 	int depth = difficulty;
 	MoveNode root;
 	
+	float whiteTime = 0;
+	float blackTime = 0;
+	
 	char moveNumStr[2];
 	pos.drawBoard(playerColour);
 	
@@ -155,7 +162,11 @@ void playGame(Colour playerColour, int difficulty) {
 		
 		printf("Engine thinking...\n\n");
 		
+		t1 = clock();
 		root = search(pos, depth);
+		t2 = clock();
+		
+		blackTime += (((float)t2 - (float)t1) / 1000000.0F) * 1000;
 		m = root.children.front().move;
 		
 		game.append(getMoveStr(pos, m));
@@ -176,11 +187,15 @@ void playGame(Colour playerColour, int difficulty) {
 			game.append(" ");
 		}
 		
+		t1 = clock();
 		while (!m) {
 			printf("Please input a move : ");
 			getline(cin, moveStr);
 			m = getMoveFromString(moveStr, pos);
 		}
+		t2 = clock();
+		
+		whiteTime += (((float)t2 - (float)t1) / 1000000.0F) * 1000;
 		printf("\n");
 		
 		game.append(getMoveStr(pos, m));
@@ -203,7 +218,11 @@ void playGame(Colour playerColour, int difficulty) {
 		
 		printf("Engine thinking...\n\n");
 		
-		root = search(pos, depth);
+		t1 = clock();
+		root = depthFirst(pos, depth);
+		t2 = clock();
+		
+		blackTime += (((float)t2 - (float)t1) / 1000000.0F) * 1000;
 		m = root.children.front().move;
 		
 		game.append(getMoveStr(pos, m));
@@ -236,9 +255,144 @@ void playGame(Colour playerColour, int difficulty) {
 	
 	printf("Here was the game :\n%s\n\n", game.c_str());
 	
+	printf("White thought for : %f seconds\n", whiteTime);
+	printf("Black thought for : %f seconds\n", blackTime);
 	printf("Enter anything to quit.");
 	getline(cin, moveStr);
 	
+}
+
+
+/* 
+ * 
+ */
+void startGame() {
+	// Play a game vs computer.
+	printf("\n\n");
+	printf("Welcome to the Bluebear Chess engine.\n");
+	printf("To play, input a move by giving a to and from coordinate,\n");
+	printf("e.g. e2e4, or, a1h8.\n");
+	printf("The only time you must indicate something else is when\n");
+	printf("promoting a pawn, a7a8n will promote to a knight, a1a8b to\n");
+	printf("a bishop etc, if no piece type is specified it will default to a queen.\n\n");
+	printf("To start a game, choose a colour (w/b).");
+	
+	
+	char colourChar = 0;
+	while (colourChar != 'w' && colourChar != 'b') {
+		cin >> colourChar;
+	}
+	
+	printf("Now choose a difficulty (1-4)");
+	
+	int difficulty = 0;
+	while (difficulty < 1 || difficulty > 4) {
+		cin >> difficulty;
+	}
+	
+	Colour playerColour = colourChar == 'w' ? WHITE : BLACK;
+	playGame(playerColour, difficulty);
+}
+
+
+/* 
+ * 
+ */
+void engineveingine(int depth) {
+	
+	clock_t t1, t2;
+	
+	Position pos;
+	init(pos);
+	
+	string game = "";
+	string moveStr;
+	Move m;
+	MoveNode root;
+	
+	float whiteTime = 0;
+	float blackTime = 0;
+	
+	char moveNumStr[2];
+	pos.drawBoard(WHITE);
+	
+	while(!pos.isCheckMate() && !pos.isDraw()) {
+		m = 0;
+		
+		if (pos.getToMove() == WHITE) {
+			sprintf(moveNumStr, "%u.", pos.getMoveNumber());
+			game.append(moveNumStr);
+			game.append(" ");
+		}
+		
+		
+		printf("Search Engine thinking...\n\n");
+		
+		t1 = clock();
+		root = search(pos, depth);
+		t2 = clock();
+		
+		whiteTime += (((float)t2 - (float)t1) / 1000000.0F) * 1000;
+		m = root.children.front().move;
+		
+		game.append(getMoveStr(pos, m));
+		game.append(" ");
+		
+		pos.doMove(m);
+		
+		pos.drawBoard(BLACK);
+		
+		if (pos.isCheckMate() || pos.isDraw()) {
+			break;
+		}
+		
+		
+		if (pos.getToMove() == WHITE) {
+			sprintf(moveNumStr, "%u.", pos.getMoveNumber());
+			game.append(moveNumStr);
+			game.append(" ");
+		}
+		
+		printf("DFS Engine thinking...\n\n");
+		
+		t1 = clock();
+		root = depthFirst(pos, depth + 1);
+		t2 = clock();
+		
+		blackTime += (((float)t2 - (float)t1) / 1000000.0F) * 1000;
+		m = root.children.front().move;
+		
+		game.append(getMoveStr(pos, m));
+		game.append(" ");
+		
+		pos.doMove(m);
+		
+		pos.drawBoard(BLACK);
+		
+		
+	}
+	
+	if(pos.isDraw()) {
+		
+		game.append("1/2 - 1/2");
+		
+		printf("The game was a draw.\n");
+		
+	} else {
+		
+		game.append(pos.getToMove() == WHITE ? "0 - 1" : "1 - 0");
+		
+		if (pos.getToMove() == WHITE) {
+			printf("White won.\n");
+		} else {
+			printf("Black won.\n");
+		}
+		
+	}
+	
+	printf("Here was the game :\n%s\n\n", game.c_str());
+	printf("White thought for : %f seconds\n", whiteTime);
+	printf("Black thought for : %f seconds\n", blackTime);
 }
 
 /* 
@@ -268,10 +422,11 @@ string getScoreStr(int score) {
  */
 int main(void) {
 	
-	//clock_t t1, t2;
+	clock_t t1, t2;
 	//t1 = clock();
 	//t2 = clock();
 	
+	/*
 	Position pos;
 	init(pos, bmateIn2w);
 	int depth  = 3;
@@ -304,32 +459,16 @@ int main(void) {
 		node = temp;
 		first = false;
 	}
+	*/
+	
+	// COMPUTER VS COMPUTER
+	//enginevengine();
+	// END COMPUTER VS COMPUTER
 	
 	
-	printf("\n\n");
-	printf("Welcome to the Bluebear Chess engine.\n");
-	printf("To play, input a move by giving a to and from coordinate,\n");
-	printf("e.g. e2e4, or, a1h8.\n");
-	printf("The only time you must indicate something else is when\n");
-	printf("promoting a pawn, a7a8n will promote to a knight, a1a8b to\n");
-	printf("a bishop etc, if no piece type is specified it will default to a queen.\n\n");
-	printf("To start a game, choose a colour (w/b).");
-	
-	
-	char colourChar = 0;
-	while (colourChar != 'w' && colourChar != 'b') {
-		cin >> colourChar;
-	}
-	
-	printf("Now choose a difficulty (1-4)");
-	
-	int difficulty = 0;
-	while (difficulty < 1 || difficulty > 4) {
-		cin >> difficulty;
-	}
-	
-	Colour playerColour = colourChar == 'w' ? WHITE : BLACK;
-	playGame(playerColour, difficulty);
+	// START PERSON V COMPUTER
+	startGame();
+	// END PLAY GAME
 	
 	
 	//printMovesWithScores(pos, root.children);
