@@ -54,7 +54,9 @@ public:
 	
 	
 	// Util stuff
+	void drawBoard(Colour c);
 	void drawBoard(void);
+	void drawFlipBoard(void);
 	int parseFEN(string FEN);
 	
 	// Move to util header???

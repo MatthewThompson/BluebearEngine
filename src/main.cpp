@@ -24,7 +24,9 @@ using namespace std;
 
 // The FEN for the start position.
 string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
+string perf1 = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 0";
+string perf2 = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 0";
+	
 
 // Calls all individual init functions in turn.
 void init(Position& pos, string FEN = startFEN) {
@@ -122,43 +124,40 @@ Move getMoveFromString(string moveInput, Position& pos) {
 	
 }
 
-
-/*
- * Main function, first calls init, atm used for testing my code.
+/* 
+ * 
  */
-int main(void) {
-	
-	string perf1 = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 0";
-	string perf2 = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 0";
-	
-	
-	
-	//vector<Move> moveList;
-	
+void playGame(Colour playerColour, int difficulty) {
 	Position pos;
 	init(pos);
-	
-	clock_t t1, t2;
-	//moveList = getLegalMoves(pos);
-	
-	
-	//t1 = clock();
-	//root = search(pos, depth);
-	//t2 = clock();
 	
 	string game = "";
 	string moveStr;
 	Move m;
-	int depth = 4;
+	int depth = difficulty;
 	MoveNode root;
 	
 	char moveNumStr[2];
-	pos.drawBoard();
+	pos.drawBoard(playerColour);
 	
-	Colour playerColour = WHITE;
+	if (playerColour == BLACK) {
+		game.append("1. ");
+		
+		printf("Engine thinking...\n\n");
+		
+		root = search(pos, depth);
+		m = root.children.front().move;
+		
+		game.append(getMoveStr(pos, m));
+		game.append(" ");
+		
+		pos.doMove(m);
+		
+		pos.drawBoard(playerColour);
+		
+	}
 	
 	while(!pos.isCheckMate() && !pos.isDraw()) {
-		//moveStr = "";
 		m = 0;
 		
 		if (pos.getToMove() == WHITE) {
@@ -179,10 +178,17 @@ int main(void) {
 		
 		pos.doMove(m);
 		
-		pos.drawBoard();
+		pos.drawBoard(playerColour);
 		
 		if (pos.isCheckMate() || pos.isDraw()) {
 			break;
+		}
+		
+		
+		if (pos.getToMove() == WHITE) {
+			sprintf(moveNumStr, "%u.", pos.getMoveNumber());
+			game.append(moveNumStr);
+			game.append(" ");
 		}
 		
 		printf("Engine thinking...\n\n");
@@ -195,7 +201,7 @@ int main(void) {
 		
 		pos.doMove(m);
 		
-		pos.drawBoard();
+		pos.drawBoard(playerColour);
 		
 		
 	}
@@ -222,6 +228,43 @@ int main(void) {
 	
 	printf("Enter anything to quit.");
 	getline(cin, moveStr);
+	
+}
+
+/*
+ * Main function, first calls init, atm used for testing my code.
+ */
+int main(void) {
+	
+	
+	//clock_t t1, t2;
+	//t1 = clock();
+	//t2 = clock();
+	
+	printf("\n\n");
+	printf("Welcome to the Bluebear Chess engine.\n");
+	printf("To play, input a move by giving a to and from coordinate,\n");
+	printf("e.g. e2e4, or, a1h8.\n");
+	printf("The only time you must indicate something else is when\n");
+	printf("promoting a pawn, a7a8n will promote to a knight, a1a8b to\n");
+	printf("a bishop etc, if no piece type is specified it will default to a queen.\n\n");
+	printf("To start a game, choose a colour (w/b).");
+	
+	
+	char colourChar = 0;
+	while (colourChar != 'w' && colourChar != 'b') {
+		cin >> colourChar;
+	}
+	
+	printf("Now choose a difficulty (1-4)");
+	
+	int difficulty = 0;
+	while (difficulty < 1 || difficulty > 4) {
+		cin >> difficulty;
+	}
+	
+	Colour playerColour = colourChar == 'w' ? WHITE : BLACK;
+	playGame(playerColour, difficulty);
 	
 	
 	//printMovesWithScores(pos, root.children);

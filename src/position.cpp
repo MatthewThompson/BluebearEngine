@@ -340,8 +340,12 @@ void Position::doMove(Move m) {
 	
 	if (mt == CASTLING) {
 		
-		Square rookTo   = (to > from) ? F1 : D1;
-		Square rookFrom = (to > from) ? H1 : A1;
+		Rank rank1st  = us == WHITE ? RANK_1 : RANK_8;
+		File rookFileTo   = (to > from) ? FILE_F : FILE_D;
+		File rookFileFrom = (to > from) ? FILE_H : FILE_A;
+		
+		Square rookFrom = getSquare(rookFileFrom, rank1st);
+		Square rookTo = getSquare(rookFileTo, rank1st);
 		
 		// For castling, move the rook and remove all castling rights.
 		movePiece(rookFrom, rookTo);
@@ -405,10 +409,12 @@ void Position::tempDoMove(Move m) {
 	}
 	
 	if (mt == CASTLING) {
-		Square rookTo   = (to > from) ? F1 : D1;
-		Square rookFrom = (to > from) ? H1 : A1;
+		Rank rank1st  = us == WHITE ? RANK_1 : RANK_8;
+		File rookFileTo   = (to > from) ? FILE_F : FILE_D;
+		File rookFileFrom = (to > from) ? FILE_H : FILE_A;
 		
-		movePiece(rookFrom, rookTo);
+		Square rookFrom = getSquare(rookFileFrom, rank1st);
+		Square rookTo = getSquare(rookFileTo, rank1st);
 	}
 	
 	// Move the piece.
@@ -430,8 +436,13 @@ void Position::undoTempMove(Move m) {
 	
 	
 	if (mt == CASTLING) {
-		Square rookTo   = (to > from) ? F1 : D1;
-		Square rookFrom = (to > from) ? H1 : A1;
+		
+		Rank rank1st  = us == WHITE ? RANK_1 : RANK_8;
+		File rookFileTo   = (to > from) ? FILE_F : FILE_D;
+		File rookFileFrom = (to > from) ? FILE_H : FILE_A;
+		
+		Square rookFrom = getSquare(rookFileFrom, rank1st);
+		Square rookTo = getSquare(rookFileTo, rank1st);
 		
 		movePiece(rookTo, rookFrom);
 	}
@@ -799,27 +810,34 @@ Bitboard Position::getAttackersTo(Square s, Colour c, PieceType pt) {
  *
  */
 
+
+/* 
+ * Prints a board from perspective of a given colour.
+ */
+void Position::drawBoard(Colour c) {
+	c == WHITE ? drawBoard() : drawFlipBoard();
+}
+
 /* 
  * Prints a board.
  */
 void Position::drawBoard(void) {
 	
-	string line = "+---+---+---+---+---+---+---+---+";
+	string line = " +---+---+---+---+---+---+---+---+";
 	
 	printf("%s\n", line.c_str());
+	
 	
 	Piece p;
 	for (Rank r = RANK_8; r >= RANK_1; r--) {
 		
-		printf("|");
+		printf("%u|", r + 1);
 		
 		for (File f = FILE_A; f <= FILE_H; f++) {
 			
 			p = board[getSquare(f, r)];
 			
 			printf(" %c |", getCharFromPiece(p));
-			
-			//printf(" %u |", board[getSquare(f, r)]);
 			
 		}
 		
@@ -828,6 +846,42 @@ void Position::drawBoard(void) {
 		
 		
 	}
+	
+	printf("   A   B   C   D   E   F   G   H\n");
+	
+}
+
+
+/* 
+ * Prints a board from perspective of black.
+ */
+void Position::drawFlipBoard(void) {
+	
+	string line = " +---+---+---+---+---+---+---+---+";
+	
+	printf("%s\n", line.c_str());
+	
+	
+	Piece p;
+	for (Rank r = RANK_1; r <= RANK_8; r++) {
+		
+		printf("%u|", r + 1);
+		
+		for (File f = FILE_H; f >= FILE_A; f--) {
+			
+			p = board[getSquare(f, r)];
+			
+			printf(" %c |", getCharFromPiece(p));
+			
+		}
+		
+		printf("\n");
+		printf("%s\n", line.c_str());
+		
+		
+	}
+	
+	printf("   H   G   F   E   D   C   B   A\n");
 	
 }
 
