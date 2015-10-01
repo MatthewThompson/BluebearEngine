@@ -163,7 +163,7 @@ void playGame(Colour playerColour, int difficulty) {
 		printf("Engine thinking...\n\n");
 		
 		t1 = clock();
-		root = search(pos, depth);
+		root = depthFirst(pos, depth);
 		t2 = clock();
 		
 		blackTime += (((float)t2 - (float)t1) / 1000000.0F) * 1000;

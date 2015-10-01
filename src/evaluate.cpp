@@ -41,7 +41,7 @@ bool descending(MoveNode a, MoveNode b) {
  */
 MoveNode search(Position& pos, int depth) {
 	MoveNode root;
-	return search(pos, depth, root, 0);
+	return search(pos, depth, root, 0, depth + 3);
 }
 
 /* 
@@ -55,11 +55,11 @@ MoveNode depthFirst(Position& pos, int depth) {
 /* 
  * 
  */
-MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot) {
+MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot, int maxDepth) {
 	
-	if (depth == 0) {
-		
-		return MoveNode(pos, depthFromRoot);
+	if (depth == 0 || depthFromRoot > maxDepth) {
+		root.score = evaluate(pos, depthFromRoot);
+		return root;
 		
 	}
 	
@@ -82,7 +82,7 @@ MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot) {
 			
 			if (pos.isCapture(m) || pos.isMoveCheck(m)) {
 				MoveNode node(m);
-				moves.push_back(search(next, depth, node, depthFromRoot + 1));
+				moves.push_back(search(next, depth, node, depthFromRoot + 1, maxDepth));
 			} else {
 				moves.push_back(MoveNode(next, m, depthFromRoot + 1));
 			}
@@ -90,7 +90,7 @@ MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot) {
 		} else { // Depth > 1
 			
 			MoveNode node(m);
-			moves.push_back(search(next, depth - 1, node, depthFromRoot + 1));
+			moves.push_back(search(next, depth - 1, node, depthFromRoot + 1, maxDepth));
 			
 		}
 		
@@ -145,7 +145,7 @@ MoveNode depthFirst(Position& pos, int depth, MoveNode root, int depthFromRoot) 
 		} else { // Depth > 1
 			
 			MoveNode node(m);
-			moves.push_back(search(next, depth - 1, node, depthFromRoot + 1));
+			moves.push_back(depthFirst(next, depth - 1, node, depthFromRoot + 1));
 			
 		}
 		
