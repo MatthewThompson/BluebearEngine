@@ -12,6 +12,8 @@
 #include "moves.h"
 #include "position.h"
 
+using namespace std;
+
 
 /* 
  * TODO : MAKE THIS A CLASS

@@ -166,7 +166,7 @@ void playGame(Colour playerColour, int difficulty) {
 		root = depthFirst(pos, depth);
 		t2 = clock();
 		
-		blackTime += (((float)t2 - (float)t1) / 1000000.0F) * 1000;
+		blackTime += ((((float)t2 - (float)t1) / 1000000.0F) * 1000);
 		m = root.children.front().move;
 		
 		game.append(getMoveStr(pos, m));
@@ -298,7 +298,7 @@ void startGame() {
 /* 
  * 
  */
-void engineveingine(int depth) {
+void enginevengine(int depth) {
 	
 	clock_t t1, t2;
 	
@@ -332,7 +332,7 @@ void engineveingine(int depth) {
 		root = search(pos, depth);
 		t2 = clock();
 		
-		whiteTime += (((float)t2 - (float)t1) / 1000000.0F) * 1000;
+		whiteTime += ((((float)t2 - (float)t1) / 1000000.0F) * 1000);
 		m = root.children.front().move;
 		
 		game.append(getMoveStr(pos, m));
@@ -462,7 +462,7 @@ int main(void) {
 	*/
 	
 	// COMPUTER VS COMPUTER
-	//enginevengine();
+	//enginevengine(3);
 	// END COMPUTER VS COMPUTER
 	
 	

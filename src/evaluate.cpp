@@ -18,6 +18,8 @@
 #include "position.h"
 #include "types.h"
 
+using namespace std;
+
 /*
  * Initialise all precomputd values and arrays used to evaluate a position.
  */

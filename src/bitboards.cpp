@@ -13,6 +13,8 @@
 #include "types.h"
 #include "bitboards.h"
 
+using namespace std;
+
 
 // Arrays for keeping the rank, file and square bitboards.
 Bitboard SquareBB[TOTAL_SQUARES];

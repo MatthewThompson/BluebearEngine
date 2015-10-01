@@ -17,6 +17,8 @@
 #include "types.h"
 #include "position.h"
 
+using namespace std;
+
 
 /* 
  * Takes a list of moves, and a colour, and adds all
