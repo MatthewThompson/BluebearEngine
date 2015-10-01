@@ -149,7 +149,7 @@ int main(void) {
 	string game = "";
 	string moveStr;
 	Move m;
-	int depth = 3;
+	int depth = 4;
 	MoveNode root;
 	
 	char moveNumStr[2];
