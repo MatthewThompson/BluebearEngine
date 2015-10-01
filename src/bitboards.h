@@ -30,7 +30,11 @@ lsb -> 0  1  2  3  4  5  6  7
 // A bitboard is just a uint64_t, typedef in types.h
 #include "types.h"
 
-// Precalculated bitboards for ranks and files.
+// Precalculated bitboards for ranks and files, dark and light squares.
+
+const Bitboard DarkSquares = 0xAA55AA55AA55AA55ULL;
+const Bitboard LightSquares = ~DarkSquares;
+
 const Bitboard FileABB = 0x0101010101010101ULL;
 const Bitboard FileBBB = FileABB << 1;
 const Bitboard FileCBB = FileABB << 2;
@@ -111,7 +115,24 @@ void printBitboard(Bitboard b);
  * for example, getting rank and file bitboards, or adding and removing bits.
  */
 
-// Returns a specified square bitboard.
+
+/* 
+ * Returns the bitboard for all the light squares.
+ */
+inline Bitboard getLightSquares() {
+	return LightSquares;
+}
+
+/* 
+ * Returns the bitboard for all the dark squares.
+ */
+inline Bitboard getDarkSquares() {
+	return DarkSquares;
+}
+
+/* 
+ * Returns a specified square bitboard.
+ */
 inline Bitboard getBB(Square s) {
 	return SquareBB[s];
 }
