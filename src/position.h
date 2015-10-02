@@ -31,6 +31,7 @@ public:
 	Bitboard getPieces(Colour c);
 	Bitboard getPieces(PieceType pt);
 	Bitboard getPieces(Colour c, PieceType pt);
+	Square * getPieceList(Colour c, PieceType pt);
 	Square getKingSquare(Colour c);
 	Piece pieceAt(Square s);
 	bool isEmpty(Square s);
@@ -45,7 +46,7 @@ public:
 	void Position::setEPTarget(Square s);
 	//int getMovesSinceCapture(); // Don't add unless needed.
 	int getMoveNumber(); //
-	//PieceType getCapturedType(); //
+	Piece getCaptured();
 	
 	//
 	void doMove(Move m);
@@ -71,6 +72,7 @@ public:
 	static Square getSquareFromStr(string str);
 	
 	//
+	bool isCheck();
 	bool isInCheck(Colour c);
 	bool isCheckMate();
 	bool isInCheckMate(Colour c);
@@ -131,7 +133,8 @@ private:
 	Square enPassantTarget;
 	int movesSinceCapture;
 	int moveNumber;
-	PieceType capturedType;
+	Piece captured;
+	
 	
 	// 
 	Piece board[TOTAL_SQUARES];

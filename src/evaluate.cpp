@@ -43,7 +43,7 @@ bool descending(MoveNode a, MoveNode b) {
  */
 MoveNode search(Position& pos, int depth) {
 	MoveNode root;
-	return search(pos, depth, root, 0, depth + 3);
+	return search(pos, depth, root, 0, depth + 2);
 }
 
 /* 
@@ -59,9 +59,23 @@ MoveNode depthFirst(Position& pos, int depth) {
  */
 MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot, int maxDepth) {
 	
-	if (depth == 0 || depthFromRoot > maxDepth) {
+	if (depthFromRoot > maxDepth) {
 		root.score = evaluate(pos, depthFromRoot);
 		return root;
+	}
+	
+	if (depth == 0) {
+		
+		if (pos.getCaptured() || pos.isCheck()) {
+			
+			return search(pos, 1, root, depthFromRoot, maxDepth);
+			
+		} else {
+			
+			root.score = evaluate(pos, depthFromRoot);
+			return root;
+			
+		}
 		
 	}
 	
@@ -80,21 +94,9 @@ MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot, int 
 		next = Position(pos);
 		next.doMove(m);
 		
-		if (depth == 1) {
-			
-			if (pos.isCapture(m) || pos.isMoveCheck(m)) {
-				MoveNode node(m);
-				moves.push_back(search(next, depth, node, depthFromRoot + 1, maxDepth));
-			} else {
-				moves.push_back(MoveNode(next, m, depthFromRoot + 1));
-			}
-			
-		} else { // Depth > 1
-			
-			MoveNode node(m);
-			moves.push_back(search(next, depth - 1, node, depthFromRoot + 1, maxDepth));
-			
-		}
+		MoveNode node(m);
+		moves.push_back(search(next, depth - 1, node, depthFromRoot + 1, maxDepth));
+		
 		
 	}
 	
@@ -108,7 +110,6 @@ MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot, int 
 	vector<MoveNode> sortedMoves = root.children;
 	root.score = moves.front().score;
 	
-	
 	return root;
 	
 }
@@ -121,7 +122,8 @@ MoveNode depthFirst(Position& pos, int depth, MoveNode root, int depthFromRoot) 
 	
 	if (depth == 0) {
 		
-		return MoveNode(pos, depthFromRoot);
+		root.score = evaluate(pos, depthFromRoot);
+		return root;
 		
 	}
 	
@@ -140,16 +142,8 @@ MoveNode depthFirst(Position& pos, int depth, MoveNode root, int depthFromRoot) 
 		next = Position(pos);
 		next.doMove(m);
 		
-		if (depth == 1) {
-			
-			moves.push_back(MoveNode(next, m, depthFromRoot + 1));
-			
-		} else { // Depth > 1
-			
-			MoveNode node(m);
-			moves.push_back(depthFirst(next, depth - 1, node, depthFromRoot + 1));
-			
-		}
+		MoveNode node(m);
+		moves.push_back(depthFirst(next, depth - 1, node, depthFromRoot + 1));
 		
 	}
 	
@@ -188,11 +182,7 @@ int evaluate(Position& pos, int depthFromRoot = 0) {
 	
 	
 	int whiteScore = evaluate(pos, WHITE);
-	
-	
 	int blackScore = evaluate(pos, BLACK);
-	
-	
 	
 	return whiteScore - blackScore;
 	
@@ -208,52 +198,112 @@ int evaluate(Position& pos, Colour c) {
 	
 	material += pos.getPieceCount(c, PAWN) * 100;
 	material += pos.getPieceCount(c, KNIGHT) * 300;
-	material += pos.getPieceCount(c, BISHOP) * 300;
+	material += pos.getPieceCount(c, BISHOP) * 310;
 	material += pos.getPieceCount(c, ROOK) * 500;
 	material += pos.getPieceCount(c, QUEEN) * 900;
+	
+	Bitboard bishops = pos.getPieces(c, BISHOP);
+	if ((bishops & getLightSquares()) && (bishops & getDarkSquares())) { // Has bishop pair
+		material += 50;
+	}
 	
 	// END MATERIAL
 	
 	
-	//
+	
+	// PAWNS
 	int pawns = 0;
 	
 	pawns += getPawnScores(pos, c);
 	// ISOLATED
 	// BACKWARDS
 	// BLOCKED
-	// POSITIONS (use array).
-	
 	
 	// END PAWNS
 	
-	//
-	int mobility = getLegalMoves(pos, c).size();
+	// KNIGHTS
+	int knights = getKnightScores(pos, c);
+	// END KNIGHTS
 	
-	return material + pawns + mobility;
+	
+	
+	// KING SAFETY
+	int kingSafety = 0;
+	int enemyMaterial =
+	pos.getPieceCount(~c, KNIGHT) * 300 +
+	pos.getPieceCount(~c, BISHOP) * 300 + 
+	pos.getPieceCount(~c, ROOK) * 500 +
+	pos.getPieceCount(~c, QUEEN) * 900;
+	if (enemyMaterial > 1200) {
+		kingSafety += getKingSafety(pos, c);
+	}
+	
+	// END KING SAFETY
+	
+	
+	// MOBILITY
+	int mobility = getLegalMoves(pos, c).size() * 2;
+	// END MOBILITY
+	
+	
+	return material + pawns + knights + kingSafety + mobility;
 }
 
 
-
+/* 
+ * 
+ */
 int getPawnScores(Position& pos, Colour c) {
 	
 	int pawnScore = 0;
 	
-	Bitboard pawns = pos.getPieces(c, PAWN);
+	Square *pawns = pos.getPieceList(c, PAWN);
+	
 	if (c == WHITE) {
 		
-		while (pawns) {
-			pawnScore += pawnScores[pop_lsb(&pawns)];
+		for (int i = 0; i < pos.getPieceCount(c, PAWN); i++) {
+			pawnScore += pawnScores[pawns[i]];
 		}
 		
 	} else {
 		
-		while (pawns) {
-			pawnScore += pawnScores[63 - pop_lsb(&pawns)];
+		for (int i = 0; i < pos.getPieceCount(c, PAWN); i++) {
+			pawnScore += pawnScores[63 - pawns[i]];
 		}
 		
 	}
 	return pawnScore;
+	
+}
+
+/* 
+ * 
+ */
+int getKnightScores(Position& pos, Colour c) {
+	
+	int knightScore = 0;
+	
+	Square *knights = pos.getPieceList(c, KNIGHT);
+	
+	for (int i = 0; i < pos.getPieceCount(c, KNIGHT); i++) {
+		knightScore += knightScores[knights[i]]; // Symmetrical so doesn't make a difference.
+	}
+		
+	return knightScore;
+	
+}
+
+/* 
+ * 
+ */
+int getKingSafety(Position& pos, Colour c) {
+	
+	int knightScore = 0;
+	
+	Square king = pos.getKingSquare(c);
+	
+		
+	return kingSafety[king];
 	
 }
 

@@ -9,12 +9,13 @@ myself.
 This engine is a work in progress, to do list(in order of priority):
  - Move string methods to a util header.
  - Add simple and short opening book.
+ - Make all the score stuff and piece values magic numbers.
  - Other code cleaning and commenting.
  - Make the search better than just brute force.
  - Improve the evaluation function.
  - Multithread it.
  - Add draw by repetition rule.
  - Learn how to make 64 bit executables...
- - Do the makefile.
+ - Improve the makefile.
 
 

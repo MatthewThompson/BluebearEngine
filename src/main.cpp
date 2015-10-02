@@ -11,7 +11,7 @@
 #include <iostream.h>
 #include <vector>
 #include <string>
-#include <time.h>
+#include <sys/time.h>
 
 #include "evaluate.h"
 #include "position.h"
@@ -140,7 +140,8 @@ Move getMoveFromString(string moveInput, Position& pos) {
  */
 void playGame(Colour playerColour, int difficulty) {
 	
-	clock_t t1, t2;
+	struct timeval tim;
+	double t1, t2;
 	
 	Position pos;
 	init(pos);
@@ -151,8 +152,8 @@ void playGame(Colour playerColour, int difficulty) {
 	int depth = difficulty;
 	MoveNode root;
 	
-	float whiteTime = 0;
-	float blackTime = 0;
+	double whiteTime = 0;
+	double blackTime = 0;
 	
 	char moveNumStr[2];
 	pos.drawBoard(playerColour);
@@ -162,11 +163,13 @@ void playGame(Colour playerColour, int difficulty) {
 		
 		printf("Engine thinking...\n\n");
 		
-		t1 = clock();
+		gettimeofday(&tim, NULL);
+		t1 = tim.tv_sec+(tim.tv_usec/1000000.0);
 		root = depthFirst(pos, depth);
-		t2 = clock();
+		gettimeofday(&tim, NULL);
+		t2 = tim.tv_sec+(tim.tv_usec/1000000.0);
 		
-		blackTime += ((((float)t2 - (float)t1) / 1000000.0F) * 1000);
+		blackTime += t2 - t1;
 		m = root.children.front().move;
 		
 		game.append(getMoveStr(pos, m));
@@ -178,6 +181,7 @@ void playGame(Colour playerColour, int difficulty) {
 		
 	}
 	
+	// Until the game ends.
 	while(!pos.isCheckMate() && !pos.isDraw()) {
 		m = 0;
 		
@@ -187,15 +191,17 @@ void playGame(Colour playerColour, int difficulty) {
 			game.append(" ");
 		}
 		
-		t1 = clock();
+		gettimeofday(&tim, NULL);
+		t1 = tim.tv_sec+(tim.tv_usec/1000000.0);
 		while (!m) {
 			printf("Please input a move : ");
 			getline(cin, moveStr);
 			m = getMoveFromString(moveStr, pos);
 		}
-		t2 = clock();
+		gettimeofday(&tim, NULL);
+		t2 = tim.tv_sec+(tim.tv_usec/1000000.0);
 		
-		whiteTime += (((float)t2 - (float)t1) / 1000000.0F) * 1000;
+		whiteTime += t2 - t1;
 		printf("\n");
 		
 		game.append(getMoveStr(pos, m));
@@ -218,9 +224,11 @@ void playGame(Colour playerColour, int difficulty) {
 		
 		printf("Engine thinking...\n\n");
 		
-		t1 = clock();
+		gettimeofday(&tim, NULL);
+		t1 = tim.tv_sec+(tim.tv_usec/1000000.0);
 		root = depthFirst(pos, depth);
-		t2 = clock();
+		gettimeofday(&tim, NULL);
+		t2 = tim.tv_sec+(tim.tv_usec/1000000.0);
 		
 		blackTime += (((float)t2 - (float)t1) / 1000000.0F) * 1000;
 		m = root.children.front().move;
@@ -255,8 +263,8 @@ void playGame(Colour playerColour, int difficulty) {
 	
 	printf("Here was the game :\n%s\n\n", game.c_str());
 	
-	printf("White thought for : %f seconds\n", whiteTime);
-	printf("Black thought for : %f seconds\n", blackTime);
+	printf("White thought for : %.3lf seconds\n", whiteTime);
+	printf("Black thought for : %.3lf seconds\n", blackTime);
 	printf("Enter anything to quit.");
 	getline(cin, moveStr);
 	
@@ -300,7 +308,8 @@ void startGame() {
  */
 void enginevengine(int depth) {
 	
-	clock_t t1, t2;
+	struct timeval tim;
+	double t1, t2;
 	
 	Position pos;
 	init(pos);
@@ -310,8 +319,8 @@ void enginevengine(int depth) {
 	Move m;
 	MoveNode root;
 	
-	float whiteTime = 0;
-	float blackTime = 0;
+	double whiteTime = 0;
+	double blackTime = 0;
 	
 	char moveNumStr[2];
 	pos.drawBoard(WHITE);
@@ -328,11 +337,13 @@ void enginevengine(int depth) {
 		
 		printf("Search Engine thinking...\n\n");
 		
-		t1 = clock();
-		root = search(pos, depth);
-		t2 = clock();
+		gettimeofday(&tim, NULL);
+		t1 = tim.tv_sec+(tim.tv_usec/1000000.0);
+		root = depthFirst(pos, depth);
+		gettimeofday(&tim, NULL);
+		t2 = tim.tv_sec+(tim.tv_usec/1000000.0);
 		
-		whiteTime += ((((float)t2 - (float)t1) / 1000000.0F) * 1000);
+		whiteTime += t2 - t1;
 		m = root.children.front().move;
 		
 		game.append(getMoveStr(pos, m));
@@ -340,7 +351,7 @@ void enginevengine(int depth) {
 		
 		pos.doMove(m);
 		
-		pos.drawBoard(BLACK);
+		pos.drawBoard();
 		
 		if (pos.isCheckMate() || pos.isDraw()) {
 			break;
@@ -355,11 +366,13 @@ void enginevengine(int depth) {
 		
 		printf("DFS Engine thinking...\n\n");
 		
-		t1 = clock();
+		gettimeofday(&tim, NULL);
+		t1 = tim.tv_sec+(tim.tv_usec/1000000.0);
 		root = depthFirst(pos, depth + 1);
-		t2 = clock();
+		gettimeofday(&tim, NULL);
+		t2 = tim.tv_sec+(tim.tv_usec/1000000.0);
 		
-		blackTime += (((float)t2 - (float)t1) / 1000000.0F) * 1000;
+		blackTime += t2 - t1;
 		m = root.children.front().move;
 		
 		game.append(getMoveStr(pos, m));
@@ -367,7 +380,7 @@ void enginevengine(int depth) {
 		
 		pos.doMove(m);
 		
-		pos.drawBoard(BLACK);
+		pos.drawBoard();
 		
 		
 	}
@@ -391,8 +404,8 @@ void enginevengine(int depth) {
 	}
 	
 	printf("Here was the game :\n%s\n\n", game.c_str());
-	printf("White thought for : %f seconds\n", whiteTime);
-	printf("Black thought for : %f seconds\n", blackTime);
+	printf("White thought for : %.3lf seconds\n", whiteTime);
+	printf("Black thought for : %.3lf seconds\n", blackTime);
 }
 
 /* 
@@ -421,10 +434,6 @@ string getScoreStr(int score) {
  * Main function, first calls init, atm used for testing my code.
  */
 int main(void) {
-	
-	clock_t t1, t2;
-	//t1 = clock();
-	//t2 = clock();
 	
 	/*
 	Position pos;
@@ -462,12 +471,13 @@ int main(void) {
 	*/
 	
 	// COMPUTER VS COMPUTER
-	//enginevengine(3);
+	enginevengine(3);
 	// END COMPUTER VS COMPUTER
 	
 	
+	
 	// START PERSON V COMPUTER
-	startGame();
+	//startGame();
 	// END PLAY GAME
 	
 	

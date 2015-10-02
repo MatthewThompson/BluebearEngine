@@ -14,10 +14,6 @@
 
 using namespace std;
 
-
-/* 
- * TODO : MAKE THIS A CLASS
- */
 /* 
  * TODO : ADD 3 MOVE REPETITION RULE.
  */
@@ -35,6 +31,8 @@ Square enPassantTarget;
 int movesSinceCapture;
 // The move number.
 int moveNumber;
+// A piece captured last move if any.
+Piece captured;
 
 /* 
  * Variables to keep track of piece locations.
@@ -63,6 +61,7 @@ void Position::initPosition(void) {
 	enPassantTarget = NO_SQUARE;
 	movesSinceCapture = 0;
 	moveNumber = 0;
+	captured = NO_PIECE;
 	
 	for (int piece = 0; piece < TOTAL_PIECETYPES; piece++) {
 		pieceBB[piece] = 0;
@@ -108,6 +107,13 @@ Bitboard Position::getPieces(Colour c, PieceType pt) {
 	return pieceBB[pt] & colourBB[c];
 }
 
+/* 
+ * 
+ */
+Square * Position::getPieceList(Colour c, PieceType pt) {
+	return pieceList[c][pt];
+}
+
 // Gets the square that the king of a colour is on.
 Square Position::getKingSquare(Colour c) {
 	return pieceList[c][KING][0]; // Can only be one king.
@@ -142,14 +148,29 @@ Square Position::getEPTarget() {
 	return enPassantTarget;
 }
 
-//
+/* 
+ * 
+ */
 void Position::setEPTarget(Square s) {
 	enPassantTarget = s;
 }
 
+/* 
+ * 
+ */
 int Position::getMoveNumber() {
 	return moveNumber;
 }
+
+
+/* 
+ * 
+ */
+Piece Position::getCaptured() {
+	return captured;
+}
+
+
 
 
 /* 
@@ -319,25 +340,28 @@ void Position::doMove(Move m) {
 	
 	if (isCapture(m)) {
 		
+		movesSinceCapture = 0;
 		Square capturedSquare = to;
 		
 		if (mt == ENPASSANT) {
 			capturedSquare = to + (us == WHITE ? SOUTH : NORTH);
 		}
-		
+		captured = pieceAt(capturedSquare);
 		removePiece(capturedSquare); // Remove the piece that was captured.
 		
 	} else { // No capture.
 		
+		captured = NO_PIECE;
+		
 		if (type == PAWN) {
 			
+			movesSinceCapture = 0;
 			if (to == from + (2 * forward(us))) { // Pawn double push, add ep target.
 				enPassantTarget = from + forward(us);
 			}
 			
-		} else { // Non pawn move or capture, so reset 50 move rule.
-			movesSinceCapture = 0;
 		}
+		
 	}
 	
 	if (mt == CASTLING) {
@@ -365,7 +389,7 @@ void Position::doMove(Move m) {
 }
 
 // Used to temp do a move.
-PieceType recentCapture = NO_PIECE_TYPE;
+PieceType tempRecentCapture = NO_PIECE_TYPE;
 
 /*
  * Do a move to check the legality, must be undone afterwards as
@@ -391,12 +415,12 @@ void Position::tempDoMove(Move m) {
 		
 		
 		
-		recentCapture = getPieceType(pieceAt(to));
+		tempRecentCapture = getPieceType(pieceAt(to));
 		Square capturedSquare = to;
 		
 		if (mt == ENPASSANT) {
 			
-			recentCapture = PAWN;
+			tempRecentCapture = PAWN;
 			
 			capturedSquare = to - forward(us);
 			
@@ -406,7 +430,7 @@ void Position::tempDoMove(Move m) {
 		
 	} else {
 		
-		recentCapture = NO_PIECE_TYPE;
+		tempRecentCapture = NO_PIECE_TYPE;
 		
 	}
 	
@@ -449,7 +473,7 @@ void Position::undoTempMove(Move m) {
 		movePiece(rookTo, rookFrom);
 	}
 	
-	if (recentCapture) { //
+	if (tempRecentCapture) { //
 		
 		Square capturedSquare = to;
 		
@@ -459,7 +483,7 @@ void Position::undoTempMove(Move m) {
 			
 		}
 		
-		addPiece(~us, recentCapture, capturedSquare);
+		addPiece(~us, tempRecentCapture, capturedSquare);
 		
 	}
 	
@@ -468,7 +492,7 @@ void Position::undoTempMove(Move m) {
 		addPiece(us, PAWN, from);
 	}
 	
-	recentCapture = NO_PIECE_TYPE;
+	tempRecentCapture = NO_PIECE_TYPE;
 	
 }
 
@@ -535,6 +559,12 @@ bool Position::castlingNotAttacked(Colour c, CastlingSide side) {
 	return pathUnattacked;
 }
 
+/* 
+ * Checks if the player to move is in check.
+ */
+bool Position::isCheck() {
+	return isInCheck(toMove);
+}
 
 /*
  * Checks if a colour is in check.
