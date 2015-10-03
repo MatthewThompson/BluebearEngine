@@ -335,11 +335,11 @@ void enginevengine(int depth) {
 		}
 		
 		
-		printf("Search Engine thinking...\n\n");
+		printf("DFS Engine thinking...\n\n");
 		
 		gettimeofday(&tim, NULL);
 		t1 = tim.tv_sec+(tim.tv_usec/1000000.0);
-		root = depthFirst(pos, depth);
+		root = depthFirst(pos, depth + 1);
 		gettimeofday(&tim, NULL);
 		t2 = tim.tv_sec+(tim.tv_usec/1000000.0);
 		
@@ -364,11 +364,11 @@ void enginevengine(int depth) {
 			game.append(" ");
 		}
 		
-		printf("DFS Engine thinking...\n\n");
+		printf("Search Engine thinking...\n\n");
 		
 		gettimeofday(&tim, NULL);
 		t1 = tim.tv_sec+(tim.tv_usec/1000000.0);
-		root = depthFirst(pos, depth + 1);
+		root = search(pos, depth);
 		gettimeofday(&tim, NULL);
 		t2 = tim.tv_sec+(tim.tv_usec/1000000.0);
 		
@@ -396,9 +396,9 @@ void enginevengine(int depth) {
 		game.append(pos.getToMove() == WHITE ? "0 - 1" : "1 - 0");
 		
 		if (pos.getToMove() == WHITE) {
-			printf("White won.\n");
-		} else {
 			printf("Black won.\n");
+		} else {
+			printf("White won.\n");
 		}
 		
 	}
@@ -470,8 +470,19 @@ int main(void) {
 	}
 	*/
 	
+	initBitboards();
+	
+	
+	printf("\n\n");
+	for (Square s = A5; s <= H5; s++) {
+		printf("%s : \n", Position::getSquareStr(s).c_str());
+		printBitboard(getUpDiagonal(s) | getDownDiagonal(s));
+		printf("\n\n");
+	}
+	
+	
 	// COMPUTER VS COMPUTER
-	enginevengine(3);
+	//enginevengine(3);
 	// END COMPUTER VS COMPUTER
 	
 	

@@ -21,18 +21,15 @@ Bitboard SquareBB[TOTAL_SQUARES];
 Bitboard FileBB[TOTAL_FILES];
 Bitboard RankBB[TOTAL_RANKS];
 
+Bitboard RookXrays[TOTAL_SQUARES];
+Bitboard BishopXrays[TOTAL_SQUARES];
+
+
 /*
  * Initialise all the bitboards that are kept in memory, these could all be calculated when neeeded during runtime
  * but calculating as much as we can and storing it as the start helps speed up later evaluation.
  */
 void initBitboards(void) {
-	
-	// File the square bitboard arrays.
-	for (Square s = A1; s <= H8; s++) {
-		
-		SquareBB[s] = (one << s);
-		
-	}
 	
 	// Fill the file and rank bitboard arrays (this could also be done in a loop).
 	FileBB[FILE_A] = FileABB;
@@ -55,6 +52,16 @@ void initBitboards(void) {
 	RankBB[RANK_8] = Rank8BB;
 	
 	
+	// File the square bitboard arrays.
+	for (Square s = A1; s <= H8; s++) {
+		
+		Bitboard sqBoard = (one << s);
+		SquareBB[s] = sqBoard;
+		
+		RookXrays[s] = getFileBB(getFile(s)) | getRankBB(getRank(s)) & ~sqBoard;
+		BishopXrays[s] = getUpDiagonal(s) | getDownDiagonal(s) & ~sqBoard;
+		
+	}
 	
 }
 
