@@ -62,6 +62,8 @@ void Position::initPosition(void) {
 	movesSinceCapture = 0;
 	moveNumber = 0;
 	captured = NO_PIECE;
+	whitePinned = 0;
+	blackPinned = 0;
 	
 	for (int piece = 0; piece < TOTAL_PIECETYPES; piece++) {
 		pieceBB[piece] = 0;
@@ -108,15 +110,25 @@ Bitboard Position::getPieces(Colour c, PieceType pt) {
 }
 
 /* 
- * 
+ * Gets the list of squares that a piece type are on.
  */
 Square * Position::getPieceList(Colour c, PieceType pt) {
 	return pieceList[c][pt];
 }
 
-// Gets the square that the king of a colour is on.
+/* 
+ * Gets the square that the king of a colour is on.
+ */
 Square Position::getKingSquare(Colour c) {
 	return pieceList[c][KING][0]; // Can only be one king.
+}
+
+/* 
+ * Gets all the rooks, bishops and queens that would be attacking the king
+ * if there were no pieces between them.
+ */
+Bitboard Position::getXraysToKing(Colour c) {
+	return (getRookXrays(getKingSquare(c)) & (getPieces(~c, ROOK) | getPieces(~c, QUEEN))) | (getBishopXrays(getKingSquare(c)) & (getPieces(~c, BISHOP) | getPieces(~c, QUEEN)));
 }
 
 // Gets the piece on a square.
@@ -135,6 +147,54 @@ int Position::getPieceCount(Colour c, PieceType pt) {
 }
 
 /* 
+ * Sets a bitboard of all the pinned pieces (to the king) of a colour.
+ */
+void Position::setPinned(Colour c) {
+	Bitboard xrays = getXraysToKing(c);
+	Bitboard king = getPieces(c, KING);
+	Bitboard temp;
+	Bitboard inXray;
+	Bitboard pinned = 0;
+	Square pinnedPiece;
+	for (int i = 0; i < 8; i++) {
+		
+		inXray = 0;
+		temp = shiftBB(king, QUEEN_DIRECTIONS[i]);
+		while (temp && !(temp & xrays)) { // Keep going until we hit the enemy xrayer. or we reach the end of the board (no xrayer).
+			
+			inXray = inXray | temp & getPieces(); // Check it's our colour later, because piece only pinned if it's the only one in the xray of either colour.
+			
+			temp = shiftBB(temp, QUEEN_DIRECTIONS[i]);
+		}
+		
+		if (temp && inXray) { // if temp checks that there was an xray attacker, and we didn't shift off the board.
+			// There is at least one piece between king and xrayer.
+			
+			// Get ones of the pieces in the x ray.
+			pinnedPiece = pop_lsb(&inXray);
+			
+			if ((!inXray) && getPieceColour(pieceAt(pinnedPiece)) == c) { // Checking that the colour is the same as ours isn't actually necessary.
+				
+				pinned = pinned | getBB(pinnedPiece);
+				
+			}
+			
+		}
+		
+	}
+	
+	c == WHITE ? whitePinned = pinned : blackPinned = pinned;
+}
+
+/* 
+ * 
+ */
+Bitboard Position::getPinned(Colour c) {
+	return c == WHITE ? whitePinned : blackPinned;
+}
+
+
+/* 
  * Getters.
  */
 
@@ -149,14 +209,14 @@ Square Position::getEPTarget() {
 }
 
 /* 
- * 
+ * Sets the en passant target square.
  */
 void Position::setEPTarget(Square s) {
 	enPassantTarget = s;
 }
 
 /* 
- * 
+ * Gets the move number.
  */
 int Position::getMoveNumber() {
 	return moveNumber;
@@ -164,7 +224,7 @@ int Position::getMoveNumber() {
 
 
 /* 
- * 
+ * Gets the piece that was captured on the previous move, if any.
  */
 Piece Position::getCaptured() {
 	return captured;
@@ -386,6 +446,7 @@ void Position::doMove(Move m) {
 	if (toMove == WHITE) { // If it is now white to move again, it is the next move.
 		moveNumber++;
 	}
+	
 }
 
 // Used to temp do a move.
@@ -622,12 +683,18 @@ bool Position::isCapture(Move m) {
  * the best way to do this).
  */
 bool Position::isLegal(Move m) {
-	tempDoMove(m);
+	Square from = getFrom(m);
+	Square to = getTo(m);
+	Piece p = pieceAt(from);
+	Colour c = getPieceColour(p);
+	PieceType pt = getPieceType(p);
 	
-	bool legal = !isInCheck(toMove); // Temp move doesn't change the colour.
-	undoTempMove(m);
-	
-	return legal;
+	if (pt == KING) {
+		return !(getAttackersTo(to, ~c));
+	} else {
+		// If piece is pinned, and the to from and kingsquare aren't alligned, it's not legal.
+		return !( (getPinned(c) & getBB(from)) && (!areAlligned(from, to, getKingSquare( c ))) );
+	}
 }
 
 /* 
@@ -636,13 +703,20 @@ bool Position::isLegal(Move m) {
  * the best way to do this).
  */
 bool Position::isLegal(Move m, Colour c) {
+	Square from = getFrom(m);
+	Square to = getTo(m);
+	Piece p = pieceAt(from);
+	if (getPieceColour(p) != c) {
+		return 0; // We canonly move our own pieces.
+	}
+	PieceType pt = getPieceType(p);
 	
-	tempDoMove(m);
-	
-	bool legal = !isInCheck(c); // Temp move doesn't change the colour.
-	undoTempMove(m);
-	
-	return legal;
+	if (pt == KING) {
+		return !(getAttackersTo(to, ~c));
+	} else {
+		// If piece is pinned, and the to from and kingsquare aren't alligned, it's not legal.
+		return !( (getPinned(c) & getBB(from)) && (!areAlligned(from, getTo(m), getKingSquare( c ))) );
+	}
 }
 
 
@@ -967,6 +1041,9 @@ vector<string> Position::splitFEN(string FEN) {
 	return stringSplit(FEN, ' ');
 }
 
+/* 
+ * Splits a FEN into the 6 parts and deals with them separately.
+ */
 int Position::parseFEN(string FEN) {
 	
 	vector<string> FENparts = splitFEN(FEN);
@@ -1031,6 +1108,9 @@ int Position::FENtoBB(string FEN) {
 		}
 		
 	}
+	setPinned(WHITE);
+	setPinned(BLACK);
+	
 	return 1;
 }
 

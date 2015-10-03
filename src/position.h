@@ -33,11 +33,14 @@ public:
 	Bitboard getPieces(Colour c, PieceType pt);
 	Square * getPieceList(Colour c, PieceType pt);
 	Square getKingSquare(Colour c);
+	Bitboard getXraysToKing(Colour c);
 	Piece pieceAt(Square s);
 	bool isEmpty(Square s);
 	
 	int getPieceCount(Colour c, PieceType pt);
 	
+	void setPinned(Colour c);
+	Bitboard getPinned(Colour c);
 	
 	// Private variable getters
 	Colour getToMove();
@@ -134,7 +137,8 @@ private:
 	int movesSinceCapture;
 	int moveNumber;
 	Piece captured;
-	
+	Bitboard whitePinned;
+	Bitboard blackPinned;
 	
 	// 
 	Piece board[TOTAL_SQUARES];

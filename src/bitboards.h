@@ -102,8 +102,12 @@ extern Bitboard SquareBB[TOTAL_SQUARES];
 extern Bitboard FileBB[TOTAL_FILES];
 extern Bitboard RankBB[TOTAL_RANKS];
 
+extern Bitboard Lines[TOTAL_SQUARES][TOTAL_SQUARES];
+
 extern Bitboard RookXrays[TOTAL_SQUARES];
 extern Bitboard BishopXrays[TOTAL_SQUARES];
+
+
 
 // Constant arrays for the directions each piece (excluding pawns) can move.
 const Square KNIGHT_DIRECTIONS[8][2] = {
@@ -210,14 +214,53 @@ inline Bitboard getBB(Square s) {
 	return SquareBB[s];
 }
 
-// Returns a specified file bitboard.
+/* 
+ * Returns a specified file bitboard.
+ */
 inline Bitboard getFileBB(File f) {
 	return FileBB[f];
 }
 
-// Returns a specified rank bitboard.
+/* 
+ * Returns a specified rank bitboard.
+ */
 inline Bitboard getRankBB(Rank r) {
 	return RankBB[r];
+}
+
+/* 
+ * Returns a bitboard of the line that connects 2 squares, 0 if not alligned.
+ */
+inline Bitboard getLine(Square s1, Square s2) {
+	return Lines[s1][s2];
+}
+
+/* 
+ * Returns true if 2 squares are alligned.
+ */
+inline bool areAlligned(Square s1, Square s2) {
+	return getLine(s1, s2);
+}
+
+/* 
+ * Returns true if 3 squares are alligned.
+ */
+inline bool areAlligned(Square s1, Square s2, Square s3) {
+	return getLine(s1, s2) & getBB(s3);
+}
+
+/* 
+ * Retuns the bitboard for every square a bishop could attack the given square.
+ */
+inline Bitboard getBishopXrays(Square s) {
+	return BishopXrays[s];
+}
+
+/* 
+ * Retuns the bitboard for every square a rook could attack the given square.
+ */
+inline Bitboard getRookXrays(Square s) {
+	return RookXrays[s];
 }
 
 /* 
@@ -285,7 +328,9 @@ inline Bitboard removeFromBB(Bitboard BB, Square s) {
 	return BB & ~getBB(s);
 }
 
-// Returns false if a bit is not set, true otherwise.
+/* 
+ * Returns false if a bit is not set, true otherwise.
+ */
 inline bool isBitSet(Square s, Bitboard b) {
 	return getBB(s) & b;
 }

@@ -21,6 +21,8 @@ Bitboard SquareBB[TOTAL_SQUARES];
 Bitboard FileBB[TOTAL_FILES];
 Bitboard RankBB[TOTAL_RANKS];
 
+Bitboard Lines[TOTAL_SQUARES][TOTAL_SQUARES];
+
 Bitboard RookXrays[TOTAL_SQUARES];
 Bitboard BishopXrays[TOTAL_SQUARES];
 
@@ -52,16 +54,51 @@ void initBitboards(void) {
 	RankBB[RANK_8] = Rank8BB;
 	
 	
-	// File the square bitboard arrays.
+	// Fill the square bitboard array.
 	for (Square s = A1; s <= H8; s++) {
 		
-		Bitboard sqBoard = (one << s);
-		SquareBB[s] = sqBoard;
-		
-		RookXrays[s] = getFileBB(getFile(s)) | getRankBB(getRank(s)) & ~sqBoard;
-		BishopXrays[s] = getUpDiagonal(s) | getDownDiagonal(s) & ~sqBoard;
+		SquareBB[s] = (one << s);
 		
 	}
+	
+	// Fill the array of xray attacks to each square.
+	for (Square s = A1; s <= H8; s++) {
+		
+		BishopXrays[s] = (getUpDiagonal(s) | getDownDiagonal(s)) & ~getBB(s);
+		RookXrays[s] = (getFileBB(getFile(s)) | getRankBB(getRank(s))) & ~getBB(s);
+		
+		// Fill the 2d array of the lines that connect each pair of squares.
+		for (Square s2 = A1; s2 <= H8; s2++) {
+			
+			if (s == s2) {
+				
+				Lines[s][s2] = 0;
+				
+			} else if (getRank(s) == getRank(s2)) {
+				
+				Lines[s][s2] = getRankBB(getRank(s));
+				
+			} else if (getFile(s) == getFile(s2)) {
+				
+				Lines[s][s2] = getFileBB(getFile(s));
+				
+			} else if (getUpDiagonal(s) == getUpDiagonal(s2)) {
+				
+				Lines[s][s2] = getUpDiagonal(s);
+				
+			} else if (getDownDiagonal(s) == getDownDiagonal(s2)) {
+				
+				Lines[s][s2] = getDownDiagonal(s);
+				
+			} else {
+				
+				Lines[s][s2] = 0;
+				
+			}
+			
+		}
+	}
+	
 	
 }
 

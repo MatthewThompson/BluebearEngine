@@ -438,8 +438,10 @@ vector<Move> getMoves(Position& pos, Colour us) {
  * Returns all of the legal moves in a position, for the colour whose turn it is to play.
  */
 vector<Move> getLegalMoves(Position& pos) {
-	vector<Move> moveList = getMoves(pos, pos.getToMove());
+	Colour toMove = pos.getToMove();
+	vector<Move> moveList = getMoves(pos, toMove);
 	
+	pos.setPinned(toMove);
 	for(vector<Move>::iterator it = moveList.begin(); it != moveList.end(); it++) {
 		if (!pos.isLegal(*it)) {
 			it = moveList.erase(it) - 1;
@@ -458,7 +460,7 @@ vector<Move> getLegalMoves(Position& pos, Colour c) {
 	}
 	
 	vector<Move> moveList = getMoves(pos, c);
-	
+	pos.setPinned(c);
 	for(vector<Move>::iterator it = moveList.begin(); it != moveList.end(); it++) {
 		if (!pos.isLegal(*it, c)) {
 			it = moveList.erase(it) - 1;

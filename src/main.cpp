@@ -34,6 +34,9 @@ string bmateIn2w = "K7/8/1kr/8/8/8/8/8 w - - 0 0";
 string bmateIn2b = "1K6/8/1kr/8/8/8/8/8 b - - 0 0";
 string perft1 = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 0";
 string perft2 = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 0";
+string perft3 = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1";
+string perft4 = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8";
+string xraytest = "k2q3q/3N2b1/1r6/4P3/qbpK1PRr/8/8/8 w - - 0 1";
 	
 
 /* 
@@ -437,7 +440,7 @@ int main(void) {
 	
 	/*
 	Position pos;
-	init(pos, bmateIn2w);
+	init(pos);
 	int depth  = 3;
 	MoveNode root = search(pos, depth);
 	
@@ -470,21 +473,26 @@ int main(void) {
 	}
 	*/
 	
-	initBitboards();
+	
+	Position pos;
+	init(pos);
 	
 	
-	printf("\n\n");
-	for (Square s = A5; s <= H5; s++) {
-		printf("%s : \n", Position::getSquareStr(s).c_str());
-		printBitboard(getUpDiagonal(s) | getDownDiagonal(s));
-		printf("\n\n");
-	}
+	struct timeval tim;
+	double t1, t2;
+	
+	gettimeofday(&tim, NULL);
+	t1 = tim.tv_sec+(tim.tv_usec/1000000.0);
+	printf("%u\n", perft(pos, 6));
+	gettimeofday(&tim, NULL);
+	t2 = tim.tv_sec+(tim.tv_usec/1000000.0);
+	
+	printf("Took %.3lf seconds\n", t2 - t1);
 	
 	
 	// COMPUTER VS COMPUTER
 	//enginevengine(3);
 	// END COMPUTER VS COMPUTER
-	
 	
 	
 	// START PERSON V COMPUTER
