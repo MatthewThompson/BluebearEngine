@@ -38,18 +38,18 @@ int getKingSafety(Position& pos, Colour c);
 
 struct MoveNode {
 	
-	MoveNode() : score(0), move(0) {}
-	MoveNode(Move m) : score(0), move(m) {}
-	MoveNode(Position& pos, int depthFromRoot) : score(evaluate(pos, depthFromRoot)), move(0) {}
-	MoveNode(Position& pos, Move m, int depthFromRoot) : score(evaluate(pos, depthFromRoot)), move(m) {}
+	MoveNode() : score(0), move(0), pruned(false) {}
+	MoveNode(Move m) : score(0), move(m), pruned(false) {}
+	MoveNode(Position& pos, int depthFromRoot) : score(evaluate(pos, depthFromRoot)), move(0), pruned(false) {}
+	MoveNode(Position& pos, Move m, int depthFromRoot) : score(evaluate(pos, depthFromRoot)), move(m), pruned(false) {}
 	
 	bool operator<(const MoveNode& m) const { return score < m.score; }
 	bool operator>(const MoveNode& m) const { return score > m.score; }
 	bool operator==(const MoveNode& m) const { return score == m.score; }
 	
 	int score;
-	//MoveNode parent;
 	Move move;
+	bool pruned;
 	vector<MoveNode> children;
 	
 };

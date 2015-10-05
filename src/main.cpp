@@ -441,16 +441,16 @@ int main(void) {
 	
 	Position pos;
 	//init(pos, perft1);
-	init(pos, "4r1k1/5pp1/2p5/4r3/3QbPPq/4pB2/PP4K1/2R2R2 b - - 0 27");
+	init(pos);
 	
 	
-	int depth  = 4;
+	int depth = 3;
 	
 	struct timeval tim;
 	double t1, t2;
 	gettimeofday(&tim, NULL);
 	t1 = tim.tv_sec+(tim.tv_usec/1000000.0);
-	MoveNode root = depthFirst(pos, depth);
+	MoveNode root = search(pos, depth, depth);
 	gettimeofday(&tim, NULL);
 	t2 = tim.tv_sec+(tim.tv_usec/1000000.0);
 	

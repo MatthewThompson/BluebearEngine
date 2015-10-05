@@ -15,7 +15,8 @@ This engine is a work in progress, to do list(in order of priority):
  - Make the search better than just brute force.
  - Improve the evaluation function.
  - Multithread it.
- - Add draw by repetition rule.
+ - Add draw by repetition rule (Only keep track of positions since a pawn move
+or capture (includeing that move), since after that all moves prior cannot occur again).
  - Learn how to make 64 bit executables...
  - Improve the makefile.
 

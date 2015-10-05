@@ -27,16 +27,44 @@ void initEval() {
 	
 }
 
-//
+/* 
+ * 
+ */
 bool ascending(MoveNode a, MoveNode b) {
 	return a < b;
 }
 
-//
+/* 
+ * 
+ */
 bool descending(MoveNode a, MoveNode b) {
 	return a > b;
 }
 
+vector<MoveNode> merge(vector<MoveNode> moves1, vector<MoveNode> moves2, bool (*f)(MoveNode, MoveNode)) {
+	vector<MoveNode> merged;
+	vector<MoveNode>::iterator it1 = moves1.begin();
+	vector<MoveNode>::iterator it2 = moves2.begin();
+	
+	while (it1 != moves1.end() && it2 != moves2.end()) {
+		if (f(*it1,*it2)) {
+			merged.push_back(*it1);
+			it1++;
+		} else {
+			merged.push_back(*it2);
+			it2++;
+		}
+	}
+	
+	if (it1 != moves1.end()) {
+		merged.insert(merged.end(), it1, moves1.end());
+		return merged;
+	} else {
+		merged.insert(merged.end(), it2, moves2.end());
+		return merged;
+	}
+	
+}
 
 /* 
  * 
@@ -79,7 +107,10 @@ MoveNode depthFirst(Position& pos, int depth) {
  */
 MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot, int maxDepth, bool endgame) {
 	
-	if (depthFromRoot > maxDepth) {
+	if (root.pruned || depthFromRoot > maxDepth) {
+		if (root.pruned) {
+			printf("we got pruned\n");
+		}
 		root.score = evaluate(pos, depthFromRoot);
 		return root;
 	}
@@ -104,30 +135,79 @@ MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot, int 
 		return root;
 	}
 	
-	Position next;
-	vector<Move> moveList = getLegalMoves(pos);
 	vector<MoveNode> moves;
-	Move m;
-	for(vector<Move>::iterator it = moveList.begin(); it != moveList.end(); it++) {
+	Position next;
+	
+	if (root.children.size() == 0) { // Not yet searched (if no moves due to check or stalemate this is already caught).
 		
-		m = *it;
-		next = Position(pos);
-		next.doMove(m);
+		Move m;
+		vector<Move> quietMoveList = getLegalMoves(pos, QUIET);
+		vector<Move> captureMoveList = getLegalMoves(pos, CAPTURE);
+		vector<MoveNode> quietMoves;
+		vector<MoveNode> captureMoves;
 		
-		MoveNode node(m);
-		moves.push_back(search(next, depth - 1, node, depthFromRoot + 1, maxDepth, endgame));
+		for(vector<Move>::iterator it = quietMoveList.begin(); it != quietMoveList.end(); it++) {
+			
+			m = *it;
+			next = Position(pos);
+			next.doMove(m);
+			
+			MoveNode node(m);
+			quietMoves.push_back(search(next, depth - 1, node, depthFromRoot + 1, maxDepth, endgame));
+			
+		}
 		
+		for(vector<Move>::iterator it = captureMoveList.begin(); it != captureMoveList.end(); it++) {
+			
+			m = *it;
+			next = Position(pos);
+			next.doMove(m);
+			
+			MoveNode node(m);
+			captureMoves.push_back(search(next, depth - 1, node, depthFromRoot + 1, maxDepth, endgame));
+			
+		}
+		
+		Colour toMove = pos.getToMove();
+		if (toMove == WHITE) {
+			
+			stable_sort(quietMoves.begin(), quietMoves.end(), descending);
+			stable_sort(captureMoves.begin(), captureMoves.end(), descending);
+			
+		} else {
+			
+			stable_sort(quietMoves.begin(), quietMoves.end(), ascending);
+			stable_sort(captureMoves.begin(), captureMoves.end(), ascending);
+			
+		}
+		
+		int i = 0;
+		for (vector<MoveNode>::iterator it = quietMoves.begin(); it != quietMoves.end(); it++) {
+			if (i >= 5) { // Only look at the best 5 quiets each time.
+				(*it).pruned = true;
+			}
+			i++;
+		}
+	
+		moves = toMove == WHITE ? merge(quietMoves, captureMoves, descending):
+								merge(quietMoves, captureMoves, ascending);
+		
+	} else {
+		printf("hi\n");
+		vector<MoveNode> searchedMoves = root.children;
+		for (vector<MoveNode>::iterator it = searchedMoves.begin(); it != searchedMoves.end(); it++) {
+			printf("hiloop\n");
+			next = Position(pos);
+			next.doMove(it->move);
+			moves.push_back(search(next, depth - 1, *it, depthFromRoot + 1, maxDepth, endgame));
+		}
+		
+		pos.getToMove() == WHITE ?  stable_sort(moves.begin(), moves.end(), descending):
+									stable_sort(moves.begin(), moves.end(), ascending);
 		
 	}
 	
-	
-	pos.getToMove() == WHITE ?  stable_sort(moves.begin(), moves.end(), descending):
-								stable_sort(moves.begin(), moves.end(), ascending);
-	
-	
 	root.children = moves;
-	
-	vector<MoveNode> sortedMoves = root.children;
 	root.score = moves.front().score;
 	
 	return root;
