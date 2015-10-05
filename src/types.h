@@ -44,6 +44,12 @@ enum MoveType {
 	CASTLING  = 3 << 14
 };
 
+enum MoveGenType {
+	QUIET,
+	CAPTURE,
+	ALL_TYPES
+};
+
 enum Colour {
 	WHITE, BLACK, TOTAL_COLOURS, NO_COLOUR
 };

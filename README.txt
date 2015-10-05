@@ -7,6 +7,7 @@ evaluation and search amongst other things were written
 myself.
 
 This engine is a work in progress, to do list(in order of priority):
+ - Fix bug with castling not adding check flag O-O-O+
  - Move string methods to a util header.
  - Add simple and short opening book.
  - Make all the score stuff and piece values magic numbers.

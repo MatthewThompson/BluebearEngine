@@ -24,7 +24,7 @@ using namespace std;
  * Takes a list of moves, and a colour, and adds all
  * the moves pawns can make to the list.
  */
-vector<Move> getPawnMoves(Position& pos, Colour us, vector<Move> moveList) {
+vector<Move> getPawnMoves(Position& pos, Colour us, vector<Move> moveList, MoveGenType type) {
 	
 	// Get all relevant bitboards and directions depending what side we are.
 	Bitboard pawns        = us == WHITE ? pos.getPieces(WHITE, PAWN) : pos.getPieces(BLACK, PAWN);
@@ -38,122 +38,143 @@ vector<Move> getPawnMoves(Position& pos, Colour us, vector<Move> moveList) {
 	Bitboard pawnsBelow7  = pawns & ~rank7;
 	Bitboard pawnsOn7     = pawns & rank7;
 	
-	// Shift all pawns below the 7th rank forward once and check it's on an empty square.
-	Bitboard pawnSingleMoves = shiftBB(pawnsBelow7, forward) & emptySquares;
-	// Get all the pawns that just moved that are now on the relative 3rd rank, try move them again.
-	Bitboard pawnDoubleMoves = shiftBB(pawnSingleMoves & rank3, forward) & emptySquares;
-	
-	string movename;
 	Square from, to;
 	
-	while (pawnSingleMoves) { // Keep removing each set bit from these moves until none left.
-		to = pop_lsb(&pawnSingleMoves);
-		from = to - forward;
+	//
+	if (type == QUIET || ALL_TYPES) {
 		
-		// Add each one to the move list.
-		moveList.push_back(getMove(from, to, NORMAL));
+		// Shift all pawns below the 7th rank forward once and check it's on an empty square.
+		Bitboard pawnSingleMoves = shiftBB(pawnsBelow7, forward) & emptySquares;
+		// Get all the pawns that just moved that are now on the relative 3rd rank, try move them again.
+		Bitboard pawnDoubleMoves = shiftBB(pawnSingleMoves & rank3, forward) & emptySquares;
 		
-	}
-	
-	// Add all the pawn double pushes.
-	while (pawnDoubleMoves) {
-		to = pop_lsb(&pawnDoubleMoves);
-		from = to - forward - forward;
 		
-		moveList.push_back(getMove(from, to, NORMAL));
+		while (pawnSingleMoves) { // Keep removing each set bit from these moves until none left.
+			to = pop_lsb(&pawnSingleMoves);
+			from = to - forward;
+			
+			// Add each one to the move list.
+			moveList.push_back(getMove(from, to, NORMAL));
+			
+		}
 		
-	}
-	
-	// Get both the captures (non ep) left and right separately by shifting forward left and right, and checking we are on an enemy.
-	Bitboard pawnCapsLeft = shiftBB(pawnsBelow7, forwardLeft) & enemies;
-	Bitboard pawnCapsRight = shiftBB(pawnsBelow7, forwardRight) & enemies;
-	
-	while(pawnCapsLeft) {
-		to = pop_lsb(&pawnCapsLeft);
-		from = to - forwardLeft;
-		
-		moveList.push_back(getMove(from, to, NORMAL));
-		
-	}
-	
-	while(pawnCapsRight) {
-		to = pop_lsb(&pawnCapsRight);
-		from = to - forwardRight;
-		
-		moveList.push_back(getMove(from, to, NORMAL));
+		// Add all the pawn double pushes.
+		while (pawnDoubleMoves) {
+			to = pop_lsb(&pawnDoubleMoves);
+			from = to - forward - forward;
+			
+			moveList.push_back(getMove(from, to, NORMAL));
+			
+		}
 		
 	}
 	
 	//
-	Square epTargetSquare = pos.getEPTarget();
-	
-	if (epTargetSquare != NO_SQUARE) {
+	if (type == CAPTURE || ALL_TYPES) {
 		
-		Bitboard epTarget = getBB(pos.getEPTarget());
+		// Get both the captures (non ep) left and right separately by shifting forward left and right, and checking we are on an enemy.
+		Bitboard pawnCapsLeft = shiftBB(pawnsBelow7, forwardLeft) & enemies;
+		Bitboard pawnCapsRight = shiftBB(pawnsBelow7, forwardRight) & enemies;
 		
-		// Get both left and right ep captures, by shifting and checking we are on an ep target square.
-		Bitboard pawnEPCapsLeft = shiftBB(pawnsBelow7, forwardLeft) & epTarget;
-		Bitboard pawnEPCapsRight = shiftBB(pawnsBelow7, forwardRight) & epTarget;
-		Square captured;
-		
-		while(pawnEPCapsLeft) {
-			to = pop_lsb(&pawnEPCapsLeft);
+		while(pawnCapsLeft) {
+			to = pop_lsb(&pawnCapsLeft);
 			from = to - forwardLeft;
 			
-			moveList.push_back(getMove(from, to, ENPASSANT));
+			moveList.push_back(getMove(from, to, NORMAL));
 			
 		}
 		
-		while(pawnEPCapsRight) {
-			to = pop_lsb(&pawnEPCapsRight);
+		while(pawnCapsRight) {
+			to = pop_lsb(&pawnCapsRight);
 			from = to - forwardRight;
 			
-			moveList.push_back(getMove(from, to, ENPASSANT));
+			moveList.push_back(getMove(from, to, NORMAL));
+			
+		}
+		
+		//
+		Square epTargetSquare = pos.getEPTarget();
+		
+		if (epTargetSquare != NO_SQUARE) {
+			
+			Bitboard epTarget = getBB(pos.getEPTarget());
+			
+			// Get both left and right ep captures, by shifting and checking we are on an ep target square.
+			Bitboard pawnEPCapsLeft = shiftBB(pawnsBelow7, forwardLeft) & epTarget;
+			Bitboard pawnEPCapsRight = shiftBB(pawnsBelow7, forwardRight) & epTarget;
+			Square captured;
+			
+			while(pawnEPCapsLeft) {
+				to = pop_lsb(&pawnEPCapsLeft);
+				from = to - forwardLeft;
+				
+				moveList.push_back(getMove(from, to, ENPASSANT));
+				
+			}
+			
+			while(pawnEPCapsRight) {
+				to = pop_lsb(&pawnEPCapsRight);
+				from = to - forwardRight;
+				
+				moveList.push_back(getMove(from, to, ENPASSANT));
+				
+			}
 			
 		}
 		
 	}
 	
-	// Shift all of the pawns on the relative 7th rank up and check they're on an empty square.
-	Bitboard pawnPromos = shiftBB(pawnsOn7, forward) & emptySquares;
 	
-	while(pawnPromos) {
-		to = pop_lsb(&pawnPromos);
-		from = to - forward;
+	//
+	if (type == QUIET || ALL_TYPES) {
 		
-		// Add 4 moves, one of each promotion type.
-		for (PieceType promotionType = KNIGHT; promotionType <= QUEEN; promotionType++) {
+		// Shift all of the pawns on the relative 7th rank up and check they're on an empty square.
+		Bitboard pawnPromos = shiftBB(pawnsOn7, forward) & emptySquares;
+		
+		while(pawnPromos) {
+			to = pop_lsb(&pawnPromos);
+			from = to - forward;
 			
-			moveList.push_back(getMove(from, to, PROMOTION, promotionType));
-			
+			// Add 4 moves, one of each promotion type.
+			for (PieceType promotionType = KNIGHT; promotionType <= QUEEN; promotionType++) {
+				
+				moveList.push_back(getMove(from, to, PROMOTION, promotionType));
+				
+			}
 		}
+		
 	}
 	
 	
-	// Do the same as captures before, but with pawns on the 7th.
-	Bitboard pawnPromoCapsLeft = shiftBB(pawnsOn7, forwardLeft) & enemies;
-	Bitboard pawnPromoCapsRight = shiftBB(pawnsOn7, forwardRight) & enemies;
-	
-	while (pawnPromoCapsLeft) {
-		to = pop_lsb(&pawnPromoCapsLeft);
-		from = to - forwardLeft;
+	//
+	if (type == CAPTURE || ALL_TYPES) {
 		
-		for (PieceType promotionType = KNIGHT; promotionType <= QUEEN; promotionType++) {
-			
-			moveList.push_back(getMove(from, to, PROMOTION, promotionType));
-			
-		}
-	}
-	
-	while (pawnPromoCapsRight) {
-		to = pop_lsb(&pawnPromoCapsRight);
-		from = to - forwardRight;
+		// Do the same as captures before, but with pawns on the 7th.
+		Bitboard pawnPromoCapsLeft = shiftBB(pawnsOn7, forwardLeft) & enemies;
+		Bitboard pawnPromoCapsRight = shiftBB(pawnsOn7, forwardRight) & enemies;
 		
-		for (PieceType promotionType = KNIGHT; promotionType <= QUEEN; promotionType++) {
+		while (pawnPromoCapsLeft) {
+			to = pop_lsb(&pawnPromoCapsLeft);
+			from = to - forwardLeft;
 			
-			moveList.push_back(getMove(from, to, PROMOTION, promotionType));
-			
+			for (PieceType promotionType = KNIGHT; promotionType <= QUEEN; promotionType++) {
+				
+				moveList.push_back(getMove(from, to, PROMOTION, promotionType));
+				
+			}
 		}
+		
+		while (pawnPromoCapsRight) {
+			to = pop_lsb(&pawnPromoCapsRight);
+			from = to - forwardRight;
+			
+			for (PieceType promotionType = KNIGHT; promotionType <= QUEEN; promotionType++) {
+				
+				moveList.push_back(getMove(from, to, PROMOTION, promotionType));
+				
+			}
+		}
+		
 	}
 	
 	return moveList;
@@ -165,7 +186,7 @@ vector<Move> getPawnMoves(Position& pos, Colour us, vector<Move> moveList) {
  * Takes a list of moves, and a colour, and adds all
  * the moves knights can make to the list.
  */
-vector<Move> getKnightMoves(Position& pos, Colour us, vector<Move> moveList) {
+vector<Move> getKnightMoves(Position& pos, Colour us, vector<Move> moveList, MoveGenType type) {
 	
 	Bitboard knights      = us == WHITE ? pos.getPieces(WHITE, KNIGHT) : pos.getPieces(BLACK, KNIGHT);
 	Bitboard enemies      = us == WHITE ? pos.getPieces(BLACK) : pos.getPieces(WHITE);
@@ -180,26 +201,36 @@ vector<Move> getKnightMoves(Position& pos, Colour us, vector<Move> moveList) {
 	
 		// A bitboard of all knights moved in one of the directions.
 		tempMove = shiftBB(shiftBB(knights, KNIGHT_DIRECTIONS[i][0]), KNIGHT_DIRECTIONS[i][1]);
-		knightJumps = tempMove & emptySquares;
-		knightCaps = tempMove & enemies;
 		
-		while (knightJumps) {
-			to = pop_lsb(&knightJumps);
-			from = to - (KNIGHT_DIRECTIONS[i][0] + KNIGHT_DIRECTIONS[i][1]);
+		//
+		if (type == QUIET || ALL_TYPES) {
 			
-			moveList.push_back(getMove(from, to, NORMAL));
+			knightJumps = tempMove & emptySquares;
+			while (knightJumps) {
+				to = pop_lsb(&knightJumps);
+				from = to - (KNIGHT_DIRECTIONS[i][0] + KNIGHT_DIRECTIONS[i][1]);
+				
+				moveList.push_back(getMove(from, to, NORMAL));
+				
+			}
 			
 		}
 		
-		while (knightCaps) {
-			to = pop_lsb(&knightCaps);
-			from = to - (KNIGHT_DIRECTIONS[i][0] + KNIGHT_DIRECTIONS[i][1]);
+		//
+		if (type == CAPTURE || ALL_TYPES) {
 			
-			moveList.push_back(getMove(from, to, NORMAL));
+			knightCaps = tempMove & enemies;
+			while (knightCaps) {
+				to = pop_lsb(&knightCaps);
+				from = to - (KNIGHT_DIRECTIONS[i][0] + KNIGHT_DIRECTIONS[i][1]);
+				
+				moveList.push_back(getMove(from, to, NORMAL));
+				
+			}
 			
 		}
+		
 	}
-	
 	
 	return moveList;
 	
@@ -210,7 +241,7 @@ vector<Move> getKnightMoves(Position& pos, Colour us, vector<Move> moveList) {
  * Takes a list of moves, and a colour, and adds all
  * the moves bishops can make to the list.
  */
-vector<Move> getBishopMoves(Position& pos, Colour us, vector<Move> moveList) {
+vector<Move> getBishopMoves(Position& pos, Colour us, vector<Move> moveList, MoveGenType type) {
 	
 	Bitboard bishops      = us == WHITE ? pos.getPieces(WHITE, BISHOP) : pos.getPieces(BLACK, BISHOP);
 	Bitboard enemies      = us == WHITE ? pos.getPieces(BLACK) : pos.getPieces(WHITE);
@@ -236,24 +267,32 @@ vector<Move> getBishopMoves(Position& pos, Colour us, vector<Move> moveList) {
 			
 			// Move all the bishops in this direction.
 			bishopMoves = shiftBB(bishopMoves, direction);
+			moves++; // Keep track of how many times we've moved.
 			bishopCaps = bishopMoves & enemies;
 			bishopMoves = bishopMoves & emptySquares; // Bishops that hit a piece of any colour are lost.
-			moves++; // Keep track of how many times we've moved.
 			
-			temp = bishopMoves;
-			while (temp) { // Use a temporary variable so we don't lose where the bishops are.
-				to = pop_lsb(&temp);
-				from = to - (direction * moves);
+			//
+			if (type == QUIET || ALL_TYPES) {
 				
-				moveList.push_back(getMove(from, to, NORMAL));
+				temp = bishopMoves;
+				while (temp) { // Use a temporary variable so we don't lose where the bishops are.
+					to = pop_lsb(&temp);
+					from = to - (direction * moves);
+					
+					moveList.push_back(getMove(from, to, NORMAL));
+				}
 				
 			}
 			
-			while (bishopCaps) {
-				to = pop_lsb(&bishopCaps);
-				from = to - (direction * moves);
+			//
+			if (type == CAPTURE || ALL_TYPES) {
 				
-				moveList.push_back(getMove(from, to, NORMAL));
+				while (bishopCaps) {
+					to = pop_lsb(&bishopCaps);
+					from = to - (direction * moves);
+					
+					moveList.push_back(getMove(from, to, NORMAL));
+				}
 				
 			}
 		}
@@ -269,7 +308,7 @@ vector<Move> getBishopMoves(Position& pos, Colour us, vector<Move> moveList) {
  * Takes a list of moves, and a colour, and adds all
  * the moves rooks can make to the list.
  */
-vector<Move> getRookMoves(Position& pos, Colour us, vector<Move> moveList) {
+vector<Move> getRookMoves(Position& pos, Colour us, vector<Move> moveList, MoveGenType type) {
 	
 	Bitboard rooks        = us == WHITE ? pos.getPieces(WHITE, ROOK) : pos.getPieces(BLACK, ROOK);
 	Bitboard enemies      = us == WHITE ? pos.getPieces(BLACK) : pos.getPieces(WHITE);
@@ -295,25 +334,34 @@ vector<Move> getRookMoves(Position& pos, Colour us, vector<Move> moveList) {
 		
 			// Move all the rooks in this direction.
 			rookMoves = shiftBB(rookMoves, direction);
+			moves++; // Keep track of how many times we've moved.
 			rookCaps = rookMoves & enemies;
 			rookMoves = rookMoves & emptySquares; // Rooks that hit a piece of any colour are lost.
-			moves++; // Keep track of how many times we've moved.
 			
-			temp = rookMoves;
-			while (temp) { // Use a temporary variable so we don't lose where the rooks are.
-				to = pop_lsb(&temp);
-				from = to - (direction * moves);
+			//
+			if (type == CAPTURE || ALL_TYPES) {
 				
-				moveList.push_back(getMove(from, to, NORMAL));
+				temp = rookMoves;
+				while (temp) { // Use a temporary variable so we don't lose where the rooks are.
+					to = pop_lsb(&temp);
+					from = to - (direction * moves);
+					
+					moveList.push_back(getMove(from, to, NORMAL));
+					
+				}
 				
 			}
 			
-			while (rookCaps) {
-				to = pop_lsb(&rookCaps);
-				from = to - (direction * moves);
+			//
+			if (type == CAPTURE || ALL_TYPES) {
 				
-				moveList.push_back(getMove(from, to, NORMAL));
-				
+				while (rookCaps) {
+					to = pop_lsb(&rookCaps);
+					from = to - (direction * moves);
+					
+					moveList.push_back(getMove(from, to, NORMAL));
+					
+				}
 			}
 		}
 	
@@ -328,7 +376,7 @@ vector<Move> getRookMoves(Position& pos, Colour us, vector<Move> moveList) {
  * Takes a list of moves, and a colour, and adds all
  * the moves queens can make to the list.
  */
-vector<Move> getQueenMoves(Position& pos, Colour us, vector<Move> moveList) {
+vector<Move> getQueenMoves(Position& pos, Colour us, vector<Move> moveList, MoveGenType type) {
 	
 	Bitboard queens       = us == WHITE ? pos.getPieces(WHITE, QUEEN) : pos.getPieces(BLACK, QUEEN);
 	Bitboard enemies      = us == WHITE ? pos.getPieces(BLACK) : pos.getPieces(WHITE);
@@ -354,24 +402,35 @@ vector<Move> getQueenMoves(Position& pos, Colour us, vector<Move> moveList) {
 			
 			// Move all the queens in this direction.
 			queenMoves = shiftBB(queenMoves, direction);
+			moves++; // Keep track of how many times we've moved.
 			queenCaps = queenMoves & enemies;
 			queenMoves = queenMoves & emptySquares; // Queens that hit a piece of any colour are lost.
-			moves++; // Keep track of how many times we've moved.
 			
-			temp = queenMoves;
-			while (temp) { // Use a temporary variable so we don't lose where the queens are.
-				to = pop_lsb(&temp);
-				from = to - (direction * moves);
+			//
+			if (type == QUIET || ALL_TYPES) {
 				
-				moveList.push_back(getMove(from, to, NORMAL));
+				temp = queenMoves;
+				while (temp) { // Use a temporary variable so we don't lose where the queens are.
+					to = pop_lsb(&temp);
+					from = to - (direction * moves);
+					
+					moveList.push_back(getMove(from, to, NORMAL));
+					
+				}
 				
 			}
 			
-			while (queenCaps) {
-				to = pop_lsb(&queenCaps);
-				from = to - (direction * moves);
+			
+			//
+			if (type == CAPTURE || ALL_TYPES) {
 				
-				moveList.push_back(getMove(from, to, NORMAL));
+				while (queenCaps) {
+					to = pop_lsb(&queenCaps);
+					from = to - (direction * moves);
+					
+					moveList.push_back(getMove(from, to, NORMAL));
+					
+				}
 				
 			}
 		}
@@ -386,7 +445,7 @@ vector<Move> getQueenMoves(Position& pos, Colour us, vector<Move> moveList) {
  * Takes a list of moves, and a colour, and adds all
  * the moves kings can make (including castling) to the list.
  */
-vector<Move> getKingMoves(Position& pos, Colour us, vector<Move> moveList) {
+vector<Move> getKingMoves(Position& pos, Colour us, vector<Move> moveList, MoveGenType type) {
 	
 	Bitboard king = pos.getPieces(us, KING);
 	Bitboard kingMove;
@@ -396,21 +455,41 @@ vector<Move> getKingMoves(Position& pos, Colour us, vector<Move> moveList) {
 		
 		kingMove = shiftBB(king, KING_DIRECTIONS[i]);
 		
-		if (kingMove && !(kingMove & pos.getPieces(us))) { // If the king is still on the board and didn't land on one of his own pieces.
+		//
+		if (type == QUIET || ALL_TYPES) {
 			
-			moveList.push_back(getMove(from, pop_lsb(&kingMove), NORMAL));
+			if (kingMove && (kingMove & ~pos.getPieces())) { // If the king is still on the board and didn't land on a piece.
+				
+				moveList.push_back(getMove(from, pop_lsb(&kingMove), NORMAL));
+				
+			}
 			
 		}
 		
+		//
+		if (type == CAPTURE || ALL_TYPES) {
+			
+			if (kingMove && (kingMove & pos.getPieces(~us))) { // If the king is still on the board and landed on an enemy piece.
+				
+				moveList.push_back(getMove(from, pop_lsb(&kingMove), NORMAL));
+				
+			}
+			
+		}
 	}
 	
-	// Check if we can castle each way (has the right do to so, path not blocked and king path not attacked).
-	if (pos.canCastle(us, KING_SIDE)) {
-		moveList.push_back(getCastling(us, KING_SIDE));
-	}
-	
-	if (pos.canCastle(us, QUEEN_SIDE)) {
-		moveList.push_back(getCastling(us, QUEEN_SIDE));
+	//
+	if (type == QUIET || ALL_TYPES) {
+		
+		// Check if we can castle each way (has the right do to so, path not blocked and king path not attacked).
+		if (pos.canCastle(us, KING_SIDE)) {
+			moveList.push_back(getCastling(us, KING_SIDE));
+		}
+		
+		if (pos.canCastle(us, QUEEN_SIDE)) {
+			moveList.push_back(getCastling(us, QUEEN_SIDE));
+		}
+		
 	}
 	
 	return moveList;
@@ -420,16 +499,16 @@ vector<Move> getKingMoves(Position& pos, Colour us, vector<Move> moveList) {
 /* 
  * Gets all of the pseudo legal moves for one colour and returns them in a vector.
  */
-vector<Move> getMoves(Position& pos, Colour us) {
+vector<Move> getMoves(Position& pos, Colour us, MoveGenType type) {
 	
 	vector<Move> moveList;
 	
-	moveList = getPawnMoves(pos, us, moveList);
-	moveList = getKnightMoves(pos, us, moveList);
-	moveList = getBishopMoves(pos, us, moveList);
-	moveList = getRookMoves(pos, us, moveList);
-	moveList = getQueenMoves(pos, us, moveList);
-	moveList = getKingMoves(pos, us, moveList);
+	moveList = getPawnMoves(pos, us, moveList, type);
+	moveList = getKnightMoves(pos, us, moveList, type);
+	moveList = getBishopMoves(pos, us, moveList, type);
+	moveList = getRookMoves(pos, us, moveList, type);
+	moveList = getQueenMoves(pos, us, moveList, type);
+	moveList = getKingMoves(pos, us, moveList, type);
 	
 	return moveList;
 }
@@ -439,7 +518,23 @@ vector<Move> getMoves(Position& pos, Colour us) {
  */
 vector<Move> getLegalMoves(Position& pos) {
 	Colour toMove = pos.getToMove();
-	vector<Move> moveList = getMoves(pos, toMove);
+	vector<Move> moveList = getMoves(pos, toMove, ALL_TYPES);
+	
+	pos.setPinned(toMove);
+	for(vector<Move>::iterator it = moveList.begin(); it != moveList.end(); it++) {
+		if (!pos.isLegal(*it)) {
+			it = moveList.erase(it) - 1;
+		}
+	}
+	return moveList;
+}
+
+/* 
+ * Returns all of the legal moves in a position, for the colour whose turn it is to play.
+ */
+vector<Move> getLegalMoves(Position& pos, MoveGenType type) {
+	Colour toMove = pos.getToMove();
+	vector<Move> moveList = getMoves(pos, toMove, type);
 	
 	pos.setPinned(toMove);
 	for(vector<Move>::iterator it = moveList.begin(); it != moveList.end(); it++) {
@@ -459,7 +554,29 @@ vector<Move> getLegalMoves(Position& pos, Colour c) {
 		pos.setEPTarget(NO_SQUARE);
 	}
 	
-	vector<Move> moveList = getMoves(pos, c);
+	vector<Move> moveList = getMoves(pos, c, ALL_TYPES);
+	pos.setPinned(c);
+	for(vector<Move>::iterator it = moveList.begin(); it != moveList.end(); it++) {
+		if (!pos.isLegal(*it, c)) {
+			it = moveList.erase(it) - 1;
+		}
+	}
+	
+	pos.setEPTarget(temp); // Reset ep square
+	
+	return moveList;
+}
+
+/* 
+ * Returns all of the legal moves in a position, for a given colour.
+ */
+vector<Move> getLegalMoves(Position& pos, Colour c, MoveGenType type) {
+	Square temp = pos.getEPTarget();
+	if (c != pos.getToMove()) { // If we're testing moves for the colour whose turn it isn't, don't let them take on the ep square.
+		pos.setEPTarget(NO_SQUARE);
+	}
+	
+	vector<Move> moveList = getMoves(pos, c, type);
 	pos.setPinned(c);
 	for(vector<Move>::iterator it = moveList.begin(); it != moveList.end(); it++) {
 		if (!pos.isLegal(*it, c)) {

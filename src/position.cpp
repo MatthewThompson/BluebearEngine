@@ -684,17 +684,22 @@ bool Position::isCapture(Move m) {
  */
 bool Position::isLegal(Move m) {
 	Square from = getFrom(m);
-	Square to = getTo(m);
 	Piece p = pieceAt(from);
 	Colour c = getPieceColour(p);
 	PieceType pt = getPieceType(p);
 	
-	if (pt == KING) {
-		return !(getAttackersTo(to, ~c));
-	} else {
-		// If piece is pinned, and the to from and kingsquare aren't alligned, it's not legal.
-		return !( (getPinned(c) & getBB(from)) && (!areAlligned(from, to, getKingSquare( c ))) );
+	if (pt == KING || isInCheck(c)) {
+		tempDoMove(m);
+		bool legal = !isInCheck(c);
+		undoTempMove(m);
+		return legal;
 	}
+	
+	Square to = getTo(m);
+	
+	// If piece is pinned, and the to from and kingsquare aren't alligned, it's not legal.
+	return !( (getPinned(c) & getBB(from)) && (!areAlligned(from, to, getKingSquare( c ))) );
+	
 }
 
 /* 
@@ -704,19 +709,23 @@ bool Position::isLegal(Move m) {
  */
 bool Position::isLegal(Move m, Colour c) {
 	Square from = getFrom(m);
-	Square to = getTo(m);
 	Piece p = pieceAt(from);
+	PieceType pt = getPieceType(p);
 	if (getPieceColour(p) != c) {
 		return 0; // We canonly move our own pieces.
 	}
-	PieceType pt = getPieceType(p);
-	
-	if (pt == KING) {
-		return !(getAttackersTo(to, ~c));
-	} else {
-		// If piece is pinned, and the to from and kingsquare aren't alligned, it's not legal.
-		return !( (getPinned(c) & getBB(from)) && (!areAlligned(from, getTo(m), getKingSquare( c ))) );
+	if (pt == KING || isInCheck(c)) {
+		tempDoMove(m);
+		bool legal = !isInCheck(c);
+		undoTempMove(m);
+		return legal;
 	}
+	
+	Square to = getTo(m);
+	
+	// If piece is pinned, and the to from and kingsquare aren't alligned, it's not legal.
+	return !( (getPinned(c) & getBB(from)) && (!areAlligned(from, getTo(m), getKingSquare( c ))) );
+	
 }
 
 

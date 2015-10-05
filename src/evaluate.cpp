@@ -41,9 +41,29 @@ bool descending(MoveNode a, MoveNode b) {
 /* 
  * 
  */
-MoveNode search(Position& pos, int depth) {
+MoveNode search(Position& pos, int depth, int maxdepth) {
 	MoveNode root;
-	return search(pos, depth, root, 0, depth + 2);
+	for (int i = 1; i <= depth; i++) {
+		root = search(pos, i, root, 0, maxdepth, false);
+		if (abs(root.score) > 9000) {
+			return root; // If we found a forced mate, stop searching.
+		}
+	}
+	return root;
+}
+
+/* 
+ * 
+ */
+MoveNode breadthFirst(Position& pos, int depth) {
+	MoveNode root;
+	for (int i = 1; i <= depth; i++) {
+		root = depthFirst(pos, i, root, 0, false);
+		if (abs(root.score) > 9000) {
+			return root; // If we found a forced mate, stop searching.
+		}
+	}
+	return root;
 }
 
 /* 
@@ -51,13 +71,13 @@ MoveNode search(Position& pos, int depth) {
  */
 MoveNode depthFirst(Position& pos, int depth) {
 	MoveNode root;
-	return depthFirst(pos, depth, root, 0);
+	return depthFirst(pos, depth, root, 0, false);
 }
 
 /* 
  * 
  */
-MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot, int maxDepth) {
+MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot, int maxDepth, bool endgame) {
 	
 	if (depthFromRoot > maxDepth) {
 		root.score = evaluate(pos, depthFromRoot);
@@ -68,7 +88,7 @@ MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot, int 
 		
 		if (pos.getCaptured() || pos.isCheck()) {
 			
-			return search(pos, 1, root, depthFromRoot, maxDepth);
+			return search(pos, 1, root, depthFromRoot + 1, maxDepth, endgame);
 			
 		} else {
 			
@@ -79,13 +99,13 @@ MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot, int 
 		
 	}
 	
-	Position next;
-	vector<Move> moveList = getLegalMoves(pos);
-	if (moveList.size() == 0) { // Checkmate or stalemate.
+	if (pos.isDraw() || pos.isCheckMate()) { // Checkmate or stalemate or 50move rule.
 		root.score = evaluate(pos, depthFromRoot);
 		return root;
 	}
 	
+	Position next;
+	vector<Move> moveList = getLegalMoves(pos);
 	vector<MoveNode> moves;
 	Move m;
 	for(vector<Move>::iterator it = moveList.begin(); it != moveList.end(); it++) {
@@ -95,7 +115,7 @@ MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot, int 
 		next.doMove(m);
 		
 		MoveNode node(m);
-		moves.push_back(search(next, depth - 1, node, depthFromRoot + 1, maxDepth));
+		moves.push_back(search(next, depth - 1, node, depthFromRoot + 1, maxDepth, endgame));
 		
 		
 	}
@@ -114,26 +134,27 @@ MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot, int 
 	
 }
 
+/* 
+ * 
+ */
+MoveNode breadthFirst(Position& pos, int depth, MoveNode root, int depthFromRoot, bool endgame) {
+	
+	
+	
+}
 
 /* 
  * 
  */
-MoveNode depthFirst(Position& pos, int depth, MoveNode root, int depthFromRoot) {
+MoveNode depthFirst(Position& pos, int depth, MoveNode root, int depthFromRoot, bool endgame) {
 	
-	if (depth == 0) {
-		
+	if (depth == 0 || pos.isDraw() || pos.isCheckMate()) { // Checkmate or stalemate or 50move rule.
 		root.score = evaluate(pos, depthFromRoot);
 		return root;
-		
 	}
 	
 	Position next;
 	vector<Move> moveList = getLegalMoves(pos);
-	if (moveList.size() == 0) { // Checkmate or stalemate.
-		root.score = evaluate(pos, depthFromRoot);
-		return root;
-	}
-	
 	vector<MoveNode> moves;
 	Move m;
 	for(vector<Move>::iterator it = moveList.begin(); it != moveList.end(); it++) {
@@ -143,7 +164,7 @@ MoveNode depthFirst(Position& pos, int depth, MoveNode root, int depthFromRoot) 
 		next.doMove(m);
 		
 		MoveNode node(m);
-		moves.push_back(depthFirst(next, depth - 1, node, depthFromRoot + 1));
+		moves.push_back(depthFirst(next, depth - 1, node, depthFromRoot + 1, endgame));
 		
 	}
 	

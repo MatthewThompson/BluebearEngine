@@ -24,10 +24,12 @@ bool ascending(MoveNode a, MoveNode b);
 bool descending(MoveNode a, MoveNode b);
 
 // Gives a score in centipawns (100 = 1.00).
-MoveNode search(Position& pos, int depth);
+MoveNode search(Position& pos, int depth, int maxdepth);
+MoveNode breadthFirst(Position& pos, int depth);
 MoveNode depthFirst(Position& pos, int depth);
-MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot, int maxDepth);
-MoveNode depthFirst(Position& pos, int depth, MoveNode root, int depthFromRoot);
+MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot, int maxDepth, bool endgame);
+MoveNode breadthFirst(Position& pos, int depth, MoveNode root, int depthFromRoot, bool endgame);
+MoveNode depthFirst(Position& pos, int depth, MoveNode root, int depthFromRoot, bool endgame);
 int evaluate(Position& pos, int depthFromRoot = 0);
 int evaluate(Position& pos, Colour c);
 int getPawnScores(Position& pos, Colour c);

@@ -24,15 +24,17 @@
  * Funciton prototypes for moves.cpp
  */
 
-vector<Move> getPawnMoves(Position& pos, Colour us, vector<Move> moveList);
-vector<Move> getKnightMoves(Position& pos, Colour us, vector<Move> moveList);
-vector<Move> getBishopMoves(Position& pos, Colour us, vector<Move> moveList);
-vector<Move> getRookMoves(Position& pos, Colour us, vector<Move> moveList);
-vector<Move> getQueenMoves(Position& pos, Colour us, vector<Move> moveList);
-vector<Move> getKingMoves(Position& pos, Colour us, vector<Move> moveList);
-vector<Move> getMoves(Position& pos, Colour us);
+vector<Move> getPawnMoves(Position& pos, Colour us, vector<Move> moveList, MoveGenType type);
+vector<Move> getKnightMoves(Position& pos, Colour us, vector<Move> moveList, MoveGenType type);
+vector<Move> getBishopMoves(Position& pos, Colour us, vector<Move> moveList, MoveGenType type);
+vector<Move> getRookMoves(Position& pos, Colour us, vector<Move> moveList, MoveGenType type);
+vector<Move> getQueenMoves(Position& pos, Colour us, vector<Move> moveList, MoveGenType type);
+vector<Move> getKingMoves(Position& pos, Colour us, vector<Move> moveList, MoveGenType type);
+vector<Move> getMoves(Position& pos, Colour us, MoveGenType type);
 vector<Move> getLegalMoves(Position& pos);
+vector<Move> getLegalMoves(Position& pos, MoveGenType type);
 vector<Move> getLegalMoves(Position& pos, Colour toMove);
+vector<Move> getLegalMoves(Position& pos, Colour toMove, MoveGenType type);
 
 string getMoveStr(Position& pos, Move m, string flags = "");
 void printMoves(Position& pos, vector<Move> moveList);

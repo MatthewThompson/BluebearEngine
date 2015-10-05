@@ -254,7 +254,7 @@ void playGame(Colour playerColour, int difficulty) {
 		
 	} else {
 		
-		game.append(pos.getToMove() == WHITE ? "0 - 1" : "1 - 0");
+		game.append(pos.getToMove() == WHITE ? "0-1" : "1-0");
 		
 		if (pos.getToMove() == playerColour) {
 			printf("You lost.\n");
@@ -338,7 +338,7 @@ void enginevengine(int depth) {
 		}
 		
 		
-		printf("DFS Engine thinking...\n\n");
+		printf("DFS 4 Engine thinking...\n\n");
 		
 		gettimeofday(&tim, NULL);
 		t1 = tim.tv_sec+(tim.tv_usec/1000000.0);
@@ -367,11 +367,11 @@ void enginevengine(int depth) {
 			game.append(" ");
 		}
 		
-		printf("Search Engine thinking...\n\n");
+		printf("Search 3 + 3 Engine thinking...\n\n");
 		
 		gettimeofday(&tim, NULL);
 		t1 = tim.tv_sec+(tim.tv_usec/1000000.0);
-		root = search(pos, depth);
+		root = search(pos, depth, depth + 3);
 		gettimeofday(&tim, NULL);
 		t2 = tim.tv_sec+(tim.tv_usec/1000000.0);
 		
@@ -390,13 +390,13 @@ void enginevengine(int depth) {
 	
 	if(pos.isDraw()) {
 		
-		game.append("1/2 - 1/2");
+		game.append("1/2-1/2");
 		
 		printf("The game was a draw.\n");
 		
 	} else {
 		
-		game.append(pos.getToMove() == WHITE ? "0 - 1" : "1 - 0");
+		game.append(pos.getToMove() == WHITE ? "0-1" : "1-0");
 		
 		if (pos.getToMove() == WHITE) {
 			printf("Black won.\n");
@@ -438,11 +438,25 @@ string getScoreStr(int score) {
  */
 int main(void) {
 	
-	/*
+	
 	Position pos;
-	init(pos);
-	int depth  = 3;
-	MoveNode root = search(pos, depth);
+	//init(pos, perft1);
+	init(pos, "4r1k1/5pp1/2p5/4r3/3QbPPq/4pB2/PP4K1/2R2R2 b - - 0 27");
+	
+	
+	int depth  = 4;
+	
+	struct timeval tim;
+	double t1, t2;
+	gettimeofday(&tim, NULL);
+	t1 = tim.tv_sec+(tim.tv_usec/1000000.0);
+	MoveNode root = depthFirst(pos, depth);
+	gettimeofday(&tim, NULL);
+	t2 = tim.tv_sec+(tim.tv_usec/1000000.0);
+	
+	printf("%.3lf\n", t2 - t1);
+	
+	//MoveNode root = search(pos, depth, depth + 0);
 	
 	MoveNode node = root;
 	int score = root.score;
@@ -471,23 +485,14 @@ int main(void) {
 		node = temp;
 		first = false;
 	}
-	*/
 	
 	
-	Position pos;
-	init(pos);
+	
+	//int depth = 3;
+	//MoveNode root = depthFirst(pos, depth);
 	
 	
-	struct timeval tim;
-	double t1, t2;
 	
-	gettimeofday(&tim, NULL);
-	t1 = tim.tv_sec+(tim.tv_usec/1000000.0);
-	printf("%u\n", perft(pos, 6));
-	gettimeofday(&tim, NULL);
-	t2 = tim.tv_sec+(tim.tv_usec/1000000.0);
-	
-	printf("Took %.3lf seconds\n", t2 - t1);
 	
 	
 	// COMPUTER VS COMPUTER
@@ -501,6 +506,7 @@ int main(void) {
 	
 	
 	//printMovesWithScores(pos, root.children);
+	
 	/*
 	MoveNode node = root;
 	int score = root.score;
@@ -533,7 +539,7 @@ int main(void) {
 	
 	/*
 	printf("\n\n");
-	pos.drawBoard();
+	//pos.drawBoard();
 	
 	//node = root.children.front().children.front();
 	node = root;
