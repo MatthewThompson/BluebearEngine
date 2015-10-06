@@ -433,6 +433,38 @@ string getScoreStr(int score) {
 	return string(scoreStr);
 }
 
+/* 
+ * 
+ */
+int countLeaves(MoveNode root) {
+	if (root.children.size() == 0) {
+		return 1;
+	}
+	int leaves = 0;
+	for (vector<MoveNode>::iterator it = root.children.begin(); it != root.children.end(); it++) {
+		leaves += countLeaves(*it);
+	}
+	return leaves;
+}
+
+/* 
+ * Maximum distance to a leaf.
+ */
+int height(MoveNode root) {
+	if (root.children.size() == 0) {
+		return 0;
+	}
+	int max = -1;
+	int nodeHeight;
+	for (vector<MoveNode>::iterator it = root.children.begin(); it != root.children.end(); it++) {
+		nodeHeight = height(*it);
+		if (max < nodeHeight) {
+			max = nodeHeight;
+		}
+	}
+	return max + 1;
+}
+
 /*
  * Main function, first calls init, atm used for testing my code.
  */
@@ -443,30 +475,47 @@ int main(void) {
 	//init(pos, perft1);
 	init(pos);
 	
-	
-	int depth = 3;
+	int depth = 6;
 	
 	struct timeval tim;
 	double t1, t2;
 	gettimeofday(&tim, NULL);
 	t1 = tim.tv_sec+(tim.tv_usec/1000000.0);
+	//MoveNode root = breadthFirst(pos, depth);
 	MoveNode root = search(pos, depth, depth);
 	gettimeofday(&tim, NULL);
 	t2 = tim.tv_sec+(tim.tv_usec/1000000.0);
 	
 	printf("%.3lf\n", t2 - t1);
 	
+	printf("%u\n", countLeaves(root));
+	
 	//MoveNode root = search(pos, depth, depth + 0);
 	
-	MoveNode node = root;
-	int score = root.score;
+	vector<MoveNode> moveList = root.children;
+	int score = 0;
+	MoveNode node;
+	Move m;
+	string negative2 = "";
+	for(vector<MoveNode>::iterator it = moveList.begin(); it != moveList.end(); it++) {
+		node = *it;
+		m = node.move;
+		score = node.score;
+		negative2 = score < 0 ? "-" : "";
+		printf("%s : %s%d.%02d (height : %u)\n", getMoveStr(pos, m).c_str(), negative2.c_str(), abs(score/100), abs(score % 100), height(node));
+	}
+	
+	
+	
+	node = root;
+	score = root.score;
 	string negative = score < 0 ? "-" : "";
 	printf("D%u (%s) :  ", depth, getScoreStr(score).c_str());
 	
 	bool first = true;
 	MoveNode temp;
 	Position tempPos(pos);
-	Move m;
+	//Move m;
 	
 	while(node.children.size()) {
 		

@@ -41,7 +41,7 @@ vector<Move> getPawnMoves(Position& pos, Colour us, vector<Move> moveList, MoveG
 	Square from, to;
 	
 	//
-	if (type == QUIET || ALL_TYPES) {
+	if (type == QUIET || type == ALL_TYPES) {
 		
 		// Shift all pawns below the 7th rank forward once and check it's on an empty square.
 		Bitboard pawnSingleMoves = shiftBB(pawnsBelow7, forward) & emptySquares;
@@ -70,7 +70,7 @@ vector<Move> getPawnMoves(Position& pos, Colour us, vector<Move> moveList, MoveG
 	}
 	
 	//
-	if (type == CAPTURE || ALL_TYPES) {
+	if (type == CAPTURE || type == ALL_TYPES) {
 		
 		// Get both the captures (non ep) left and right separately by shifting forward left and right, and checking we are on an enemy.
 		Bitboard pawnCapsLeft = shiftBB(pawnsBelow7, forwardLeft) & enemies;
@@ -126,7 +126,7 @@ vector<Move> getPawnMoves(Position& pos, Colour us, vector<Move> moveList, MoveG
 	
 	
 	//
-	if (type == QUIET || ALL_TYPES) {
+	if (type == QUIET || type == ALL_TYPES) {
 		
 		// Shift all of the pawns on the relative 7th rank up and check they're on an empty square.
 		Bitboard pawnPromos = shiftBB(pawnsOn7, forward) & emptySquares;
@@ -147,7 +147,7 @@ vector<Move> getPawnMoves(Position& pos, Colour us, vector<Move> moveList, MoveG
 	
 	
 	//
-	if (type == CAPTURE || ALL_TYPES) {
+	if (type == CAPTURE || type == ALL_TYPES) {
 		
 		// Do the same as captures before, but with pawns on the 7th.
 		Bitboard pawnPromoCapsLeft = shiftBB(pawnsOn7, forwardLeft) & enemies;
@@ -203,7 +203,7 @@ vector<Move> getKnightMoves(Position& pos, Colour us, vector<Move> moveList, Mov
 		tempMove = shiftBB(shiftBB(knights, KNIGHT_DIRECTIONS[i][0]), KNIGHT_DIRECTIONS[i][1]);
 		
 		//
-		if (type == QUIET || ALL_TYPES) {
+		if (type == QUIET || type == ALL_TYPES) {
 			
 			knightJumps = tempMove & emptySquares;
 			while (knightJumps) {
@@ -217,7 +217,7 @@ vector<Move> getKnightMoves(Position& pos, Colour us, vector<Move> moveList, Mov
 		}
 		
 		//
-		if (type == CAPTURE || ALL_TYPES) {
+		if (type == CAPTURE || type == ALL_TYPES) {
 			
 			knightCaps = tempMove & enemies;
 			while (knightCaps) {
@@ -272,7 +272,7 @@ vector<Move> getBishopMoves(Position& pos, Colour us, vector<Move> moveList, Mov
 			bishopMoves = bishopMoves & emptySquares; // Bishops that hit a piece of any colour are lost.
 			
 			//
-			if (type == QUIET || ALL_TYPES) {
+			if (type == QUIET || type == ALL_TYPES) {
 				
 				temp = bishopMoves;
 				while (temp) { // Use a temporary variable so we don't lose where the bishops are.
@@ -285,7 +285,7 @@ vector<Move> getBishopMoves(Position& pos, Colour us, vector<Move> moveList, Mov
 			}
 			
 			//
-			if (type == CAPTURE || ALL_TYPES) {
+			if (type == CAPTURE || type == ALL_TYPES) {
 				
 				while (bishopCaps) {
 					to = pop_lsb(&bishopCaps);
@@ -339,7 +339,7 @@ vector<Move> getRookMoves(Position& pos, Colour us, vector<Move> moveList, MoveG
 			rookMoves = rookMoves & emptySquares; // Rooks that hit a piece of any colour are lost.
 			
 			//
-			if (type == CAPTURE || ALL_TYPES) {
+			if (type == CAPTURE || type == ALL_TYPES) {
 				
 				temp = rookMoves;
 				while (temp) { // Use a temporary variable so we don't lose where the rooks are.
@@ -353,7 +353,7 @@ vector<Move> getRookMoves(Position& pos, Colour us, vector<Move> moveList, MoveG
 			}
 			
 			//
-			if (type == CAPTURE || ALL_TYPES) {
+			if (type == CAPTURE || type == ALL_TYPES) {
 				
 				while (rookCaps) {
 					to = pop_lsb(&rookCaps);
@@ -407,7 +407,7 @@ vector<Move> getQueenMoves(Position& pos, Colour us, vector<Move> moveList, Move
 			queenMoves = queenMoves & emptySquares; // Queens that hit a piece of any colour are lost.
 			
 			//
-			if (type == QUIET || ALL_TYPES) {
+			if (type == QUIET || type == ALL_TYPES) {
 				
 				temp = queenMoves;
 				while (temp) { // Use a temporary variable so we don't lose where the queens are.
@@ -422,7 +422,7 @@ vector<Move> getQueenMoves(Position& pos, Colour us, vector<Move> moveList, Move
 			
 			
 			//
-			if (type == CAPTURE || ALL_TYPES) {
+			if (type == CAPTURE || type == ALL_TYPES) {
 				
 				while (queenCaps) {
 					to = pop_lsb(&queenCaps);
@@ -456,7 +456,7 @@ vector<Move> getKingMoves(Position& pos, Colour us, vector<Move> moveList, MoveG
 		kingMove = shiftBB(king, KING_DIRECTIONS[i]);
 		
 		//
-		if (type == QUIET || ALL_TYPES) {
+		if (type == QUIET || type == ALL_TYPES) {
 			
 			if (kingMove && (kingMove & ~pos.getPieces())) { // If the king is still on the board and didn't land on a piece.
 				
@@ -467,7 +467,7 @@ vector<Move> getKingMoves(Position& pos, Colour us, vector<Move> moveList, MoveG
 		}
 		
 		//
-		if (type == CAPTURE || ALL_TYPES) {
+		if (type == CAPTURE || type == ALL_TYPES) {
 			
 			if (kingMove && (kingMove & pos.getPieces(~us))) { // If the king is still on the board and landed on an enemy piece.
 				
@@ -479,7 +479,7 @@ vector<Move> getKingMoves(Position& pos, Colour us, vector<Move> moveList, MoveG
 	}
 	
 	//
-	if (type == QUIET || ALL_TYPES) {
+	if (type == QUIET || type == ALL_TYPES) {
 		
 		// Check if we can castle each way (has the right do to so, path not blocked and king path not attacked).
 		if (pos.canCastle(us, KING_SIDE)) {
@@ -721,6 +721,23 @@ void printMoves(Position& pos, vector<Move> moveList) {
 /* 
  * Prints all moves in a vector in algebraic notation.
  */
+void printMovesWithScores(Position& pos, vector<MoveNode> moveList) {
+	int score = 0;
+	MoveNode node;
+	Move m;
+	string negative = "";
+	for(vector<MoveNode>::iterator it = moveList.begin(); it != moveList.end(); it++) {
+		node = *it;
+		m = node.move;
+		score = node.score;
+		negative = score < 0 ? "-" : "";
+		printf("%s : %s%d.%02d\n", getMoveStr(pos, m).c_str(), negative.c_str(), abs(score/100), abs(score % 100));
+	}
+}
+
+/* 
+ * Prints all moves in a vector in algebraic notation.
+ */
 void printMovesWithScores(Position& pos, vector<Move> moveList) {
 	int score = 0;
 	Position next;
@@ -736,22 +753,6 @@ void printMovesWithScores(Position& pos, vector<Move> moveList) {
 	}
 }
 
-/* 
- * Prints all moves in a vector in algebraic notation.
- */
-void printMovesWithScores(Position& pos, vector<MoveNode> moveList) {
-	int score = 0;
-	MoveNode node;
-	Move m;
-	string negative = "";
-	for(vector<MoveNode>::iterator it = moveList.begin(); it != moveList.end(); it++) {
-		node = *it;
-		m = node.move;
-		score = node.score;
-		negative = score < 0 ? "-" : "";
-		printf("%s : %s%d.%02d\n", getMoveStr(pos, m).c_str(), negative.c_str(), abs(score/100), abs(score % 100));
-	}
-}
 
 
 

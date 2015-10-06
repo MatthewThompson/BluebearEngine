@@ -108,9 +108,6 @@ MoveNode depthFirst(Position& pos, int depth) {
 MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot, int maxDepth, bool endgame) {
 	
 	if (root.pruned || depthFromRoot > maxDepth) {
-		if (root.pruned) {
-			printf("we got pruned\n");
-		}
 		root.score = evaluate(pos, depthFromRoot);
 		return root;
 	}
@@ -143,6 +140,7 @@ MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot, int 
 		Move m;
 		vector<Move> quietMoveList = getLegalMoves(pos, QUIET);
 		vector<Move> captureMoveList = getLegalMoves(pos, CAPTURE);
+		
 		vector<MoveNode> quietMoves;
 		vector<MoveNode> captureMoves;
 		
@@ -182,21 +180,21 @@ MoveNode search(Position& pos, int depth, MoveNode root, int depthFromRoot, int 
 		}
 		
 		int i = 0;
-		for (vector<MoveNode>::iterator it = quietMoves.begin(); it != quietMoves.end(); it++) {
-			if (i >= 5) { // Only look at the best 5 quiets each time.
-				(*it).pruned = true;
+		//if (depthFromRoot > 1) {
+			for (vector<MoveNode>::iterator it = quietMoves.begin(); it != quietMoves.end(); it++) {
+				if (i >= 5) { // Only look at the best 5 quiets each time.
+					(*it).pruned = true;
+				}
+				i++;
 			}
-			i++;
-		}
-	
+		//}
 		moves = toMove == WHITE ? merge(quietMoves, captureMoves, descending):
 								merge(quietMoves, captureMoves, ascending);
 		
 	} else {
-		printf("hi\n");
+		
 		vector<MoveNode> searchedMoves = root.children;
 		for (vector<MoveNode>::iterator it = searchedMoves.begin(); it != searchedMoves.end(); it++) {
-			printf("hiloop\n");
 			next = Position(pos);
 			next.doMove(it->move);
 			moves.push_back(search(next, depth - 1, *it, depthFromRoot + 1, maxDepth, endgame));
@@ -234,24 +232,40 @@ MoveNode depthFirst(Position& pos, int depth, MoveNode root, int depthFromRoot, 
 	}
 	
 	Position next;
-	vector<Move> moveList = getLegalMoves(pos);
 	vector<MoveNode> moves;
-	Move m;
-	for(vector<Move>::iterator it = moveList.begin(); it != moveList.end(); it++) {
+	
+	if (root.children.size() == 0) {
 		
-		m = *it;
-		next = Position(pos);
-		next.doMove(m);
+		vector<Move> moveList = getLegalMoves(pos);
+		Move m;
+		for(vector<Move>::iterator it = moveList.begin(); it != moveList.end(); it++) {
+			
+			m = *it;
+			next = Position(pos);
+			next.doMove(m);
+			
+			MoveNode node(m);
+			moves.push_back(depthFirst(next, depth - 1, node, depthFromRoot + 1, endgame));
+			
+		}
 		
-		MoveNode node(m);
-		moves.push_back(depthFirst(next, depth - 1, node, depthFromRoot + 1, endgame));
+		
+		pos.getToMove() == WHITE ?  stable_sort(moves.begin(), moves.end(), descending):
+									stable_sort(moves.begin(), moves.end(), ascending);
+		
+	} else {
+		
+		vector<MoveNode> searchedMoves = root.children;
+		for (vector<MoveNode>::iterator it = searchedMoves.begin(); it != searchedMoves.end(); it++) {
+			next = Position(pos);
+			next.doMove(it->move);
+			moves.push_back(depthFirst(next, depth - 1, *it, depthFromRoot + 1, endgame));
+		}
+		
+		pos.getToMove() == WHITE ?  stable_sort(moves.begin(), moves.end(), descending):
+									stable_sort(moves.begin(), moves.end(), ascending);
 		
 	}
-	
-	
-	pos.getToMove() == WHITE ?  stable_sort(moves.begin(), moves.end(), descending):
-								stable_sort(moves.begin(), moves.end(), ascending);
-	
 	
 	root.children = moves;
 	
